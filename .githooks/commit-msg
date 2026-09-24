@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# commit-msg identity guard — TRACKED and shareable, so a clone is guarded too.
+#
+# Install once per clone:   git config core.hooksPath .githooks
+#
+# The companion to .githooks/pre-commit. That one scans the staged DIFF; this one scans the
+# commit MESSAGE, which is history too and which a file-content scan cannot see. Both are
+# only wiring: the logic and the single denylist live in tools/check-identity.sh, which the
+# test suite and the scheduled backstop also call, so none of them can drift apart.
+#
+# `git commit --no-verify` bypasses this, and hooks only fire once the install step above
+# has been run. For file content, tests/test_repo_identity.py closes both holes. For
+# MESSAGES it can only close them after the fact: a test cannot read a message that does
+# not exist yet, so it scans history against a named baseline instead. Message cover is
+# therefore weaker than file cover, and it is stated in the README rather than implied
+# to be equal.
+
+set -euo pipefail
+
+GUARD="$(git rev-parse --show-toplevel)/tools/check-identity.sh"
+
+if [ ! -x "$GUARD" ]; then
+  echo "commit-msg: guard missing or not executable: $GUARD" >&2
+  echo "Refusing the commit. This repo must stay clean at creation, so an absent guard is not a" >&2
+  echo "reason to proceed unguarded." >&2
+  exit 1
+fi
+
+exec "$GUARD" --message "$1"
