@@ -1,0 +1,8 @@
+# The PLAINTEXT denylist source. Gitignored by design: the tracked half is the
+# generated hash file, and the plaintext never enters history. A fresh clone
+# starts from tools/identity-denylist-private.example.txt.
+tools/identity-denylist-private.txt
+
+__pycache__/
+*.pyc
+.DS_Store

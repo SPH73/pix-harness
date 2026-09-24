@@ -1,0 +1,21 @@
+# The PLAINTEXT denylist source. Copy this file to
+# tools/identity-denylist-private.txt, replace the examples with your own
+# tokens, and run tools/generate-identity-hashes.sh.
+#
+# One token per line, no spaces. '#' starts a comment.
+#
+# MATCHING IS BY PREFIX, so one entry covers an open-ended family: a
+# part-number stem covers every part number starting with it.
+#
+# THE FLOOR is 5 characters. A shorter entry blocks half the vocabulary and is
+# refused at generation time unless the line carries
+# '# floor-exception: <reason>', which admits it past the floor and nothing
+# else: it is still collision-swept on every generation.
+#
+# The four entries below are FICTIONAL and ship so the guard works, and its
+# tests pass, in a fresh clone. Replace them.
+
+pq7-9         # oem-allow: example part-number stem, covers pq7-9100, pq7-9200
+kestrelworks  # oem-allow: example maker name
+orrinvale     # oem-allow: example customer name
+marchetti     # oem-allow: example person name

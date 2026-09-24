@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# pre-commit identity guard — TRACKED and shareable, so a clone is guarded too.
+#
+# Install once per clone:   git config core.hooksPath .githooks
+#
+# All the logic and the single denylist live in tools/check-identity.sh, which the test
+# suite and the scheduled backstop also call, so the three can never disagree about what
+# counts. This file is only the wiring.
+#
+# `git commit --no-verify` bypasses this, and hooks only fire once the install step above
+# has been run. Both are why tests/test_repo_identity.py exists: a test needs no install
+# and cannot be skipped with a flag.
+
+set -euo pipefail
+
+GUARD="$(git rev-parse --show-toplevel)/tools/check-identity.sh"
+
+if [ ! -x "$GUARD" ]; then
+  echo "pre-commit: guard missing or not executable: $GUARD" >&2
+  echo "Refusing the commit. This repo must stay clean at creation, so an absent guard is not a" >&2
+  echo "reason to proceed unguarded." >&2
+  exit 1
+fi
+
+exec "$GUARD" --staged
