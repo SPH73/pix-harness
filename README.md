@@ -72,7 +72,7 @@ This repository is the third of three parts. The other two are specified and not
 
 **Part 1, a skill-trigger eval suite.** A corpus of realistic user phrasings, including the near-misses and the explicit anti-triggers the skill descriptions already anticipate, scored for whether the right skill fires. Precision and recall per skill. This is agent-behaviour testing, not domain testing, and there is very little published work on it.
 
-**Part 2, token and cost accounting across a live fleet of seven scheduled agents.** Tokens and cost per run, with a before and after on a rule that stopped agents reading long files whole. The before and after is measured as a controlled A/B on a fixed task, not reconstructed from history. That is a deliberate correction: the fleet was never instrumented, so there is no historical baseline to recover, and a measured A/B is the stronger claim anyway.
+**Part 2, a measured cost signal for the scheduled agents, and a plain account of what could not be measured.** A controlled A/B on a fixed task, run attended so the token counts are real, measuring the effect of the rule that stopped agents reading long files whole. Alongside it, a per-run record across the scheduled agents that are live, capturing bytes read into context, duration, and files read. Bytes are a proxy and are labelled as one throughout: a scheduled run cannot observe its own token counts, and cost is an account fact rather than a run fact, so no per-run cost figure is published here. The fleet was never instrumented and there is no historical baseline to recover, so the record begins on 25 September 2026 and is reported with its n, which is a capture window and not a profile.
 
 **Both land by Friday 2 October 2026.**
 
