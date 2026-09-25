@@ -74,7 +74,7 @@ This repository is the third of three parts. The other two are specified and not
 
 **Part 2, a measured cost signal for the scheduled agents, and a plain account of what could not be measured.** A controlled A/B on a fixed task, run attended so the token counts are real, measuring the effect of the rule that stopped agents reading long files whole. Alongside it, a per-run record across the scheduled agents that are live, capturing bytes read into context, duration, and files read. Bytes are a proxy and are labelled as one throughout: a scheduled run cannot observe its own token counts, and cost is an account fact rather than a run fact, so no per-run cost figure is published here. The fleet was never instrumented and there is no historical baseline to recover, so the record begins on 25 September 2026 and is reported with its n, which is a capture window and not a profile.
 
-**Both land by Friday 2 October 2026.**
+**Part 2 lands by Friday 2 October 2026. Part 1 lands by Friday 16 October 2026.**
 
 ## The method
 
