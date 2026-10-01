@@ -257,7 +257,6 @@ class TestHashedDenylist(unittest.TestCase):
 
     HASHFILE = REPO / "tools" / "identity-denylist.hashes"
     GENERATOR = REPO / "tools" / "generate-identity-hashes.sh"
-    PRIVATE = REPO / "tools" / "identity-denylist-private.txt"
 
     def _scan_message(self, message: str, hashes_path: str) -> subprocess.CompletedProcess:
         with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False) as handle:
@@ -371,7 +370,7 @@ class TestHashedDenylist(unittest.TestCase):
         self.assertIn("examplecorp-9910", result.stdout)
 
     def _generate(self, source_text: str) -> subprocess.CompletedProcess:
-        """Run the generator against a temporary private source, sibling sweep off."""
+        """Run the generator against a temporary example source, sibling sweep off."""
         with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False) as handle:
             handle.write(source_text)
             src = handle.name
@@ -381,7 +380,7 @@ class TestHashedDenylist(unittest.TestCase):
         return subprocess.run(
             ["bash", str(self.GENERATOR)],
             capture_output=True, text=True, cwd=str(REPO),
-            env={**os.environ, "IDENTITY_PRIVATE": src, "IDENTITY_HASHES": out,
+            env={**os.environ, "IDENTITY_EXAMPLE": src, "IDENTITY_HASHES": out,
                  "IDENTITY_SIBLING": "/nonexistent"},
         )
 
@@ -417,26 +416,108 @@ class TestHashedDenylist(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 2)
 
-    @unittest.skipUnless(PRIVATE.is_file(), "private source absent (gitignored; not every machine)")
-    def test_the_tracked_hashes_match_the_private_source(self) -> None:
-        """Drift check: regenerate to a temp file and compare. If this fails, the
-        private source was edited without rerunning the generator."""
-        with tempfile.NamedTemporaryFile(suffix=".hashes", delete=False) as handle:
-            out = handle.name
-        self.addCleanup(pathlib.Path(out).unlink)
-        result = subprocess.run(
-            ["bash", str(self.GENERATOR)],
-            capture_output=True, text=True, cwd=str(REPO),
-            # The sibling sweep is skipped (nonexistent path): this test compares
-            # hashes, and the sibling report is informational output, not part of them.
-            env={**os.environ, "IDENTITY_HASHES": out, "IDENTITY_SIBLING": "/nonexistent"},
-        )
+    EXAMPLE = REPO / "tools" / "identity-denylist-private.example.txt"
+
+    def test_the_tracked_hashes_are_exactly_the_example_tokens(self) -> None:
+        """Pix, 2026-10-01: real names are checked locally and NEVER published, hashed
+        or otherwise, because an unsalted hash of a name is confirmed by anyone who
+        guesses it. So the tracked file must equal, line for line as a set, the hashes
+        of the fictional example source and nothing else. Computed here independently
+        of the generator: a generator pointed back at the private list would produce a
+        matching pair of wrong files, and this test would still catch it."""
+        expected = set()
+        for raw in self.EXAMPLE.read_text().splitlines():
+            line = raw.strip()
+            if not line or line.startswith("#"):
+                continue
+            token = line.partition("#")[0].strip().lower()
+            if token:
+                expected.add(f"{len(token)} {hashlib.sha256(token.encode()).hexdigest()}")
+        tracked = {
+            line.strip()
+            for line in self.HASHFILE.read_text().splitlines()
+            if line.strip() and not line.startswith("#")
+        }
+        self.assertEqual(tracked, expected,
+                         "the tracked hashes are not exactly the example tokens: a real "
+                         "entry may have been hashed into the public file")
+
+    def test_the_generator_refuses_the_private_list_as_source(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            src = pathlib.Path(tmp) / "identity-denylist-private.txt"
+            src.write_text("examplecorp-forbidden\n")
+            out = pathlib.Path(tmp) / "out.hashes"
+            result = subprocess.run(
+                ["bash", str(self.GENERATOR)],
+                capture_output=True, text=True, cwd=str(REPO),
+                env={**os.environ, "IDENTITY_EXAMPLE": str(src), "IDENTITY_HASHES": str(out),
+                     "IDENTITY_SIBLING": "/nonexistent"},
+            )
+        self.assertEqual(result.returncode, 2, "the generator accepted the private list")
+        self.assertIn("REFUSED", result.stderr)
+
+
+class TestLocalPrivateList(unittest.TestCase):
+    """The local plaintext list: real names checked on the maintaining machine and never
+    published. These tests point IDENTITY_PRIVATE at a SYNTHETIC list, so they never
+    read or name a real entry."""
+
+    def _guard(self, args: list, private: str) -> subprocess.CompletedProcess:
+        env = {**os.environ, "IDENTITY_PRIVATE": private}
+        return subprocess.run(["bash", str(GUARD), *args], capture_output=True, text=True,
+                              cwd=str(REPO), env=env)
+
+    def _message_file(self, text: str) -> str:
+        handle = tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False)
+        handle.write(text)
+        handle.close()
+        self.addCleanup(pathlib.Path(handle.name).unlink)
+        return handle.name
+
+    def _private(self, text: str) -> str:
+        return self._message_file(text)
+
+    @unittest.skipUnless(GUARD.is_file(), "guard script not present")
+    def test_a_local_entry_is_blocked_though_it_is_not_in_the_tracked_hashes(self) -> None:
+        """⚠ BITE TEST for the local list: without it, the absence of real hits in the
+        tracked sweep could mean the local list was never read."""
+        private = self._private("localonly-synthetic\n")
+        msg = self._message_file("docs: mention localonly-synthetic-7 here\n")
+        result = self._guard(["--message", msg], private)
+        self.assertEqual(result.returncode, 1, "a local-list token went unblocked")
+        self.assertIn("localonly-synthetic-7", result.stdout)
+
+    @unittest.skipUnless(GUARD.is_file(), "guard script not present")
+    def test_a_staged_local_entry_is_blocked(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            sandbox = pathlib.Path(tmp)
+            subprocess.run(["git", "init", "-q", str(sandbox)], check=True, capture_output=True)
+            (sandbox / "notes.txt").write_text("met localonly-synthetic today\n")
+            subprocess.run(["git", "-C", str(sandbox), "add", "notes.txt"], check=True)
+            result = subprocess.run(
+                ["bash", str(GUARD), "--staged"], capture_output=True, text=True,
+                env={**os.environ, "HARNESS_REPO": str(sandbox),
+                     "IDENTITY_HASHES": str(REPO / "tools" / "identity-denylist.hashes"),
+                     "IDENTITY_PRIVATE": self._private("localonly-synthetic\n")},
+            )
+        self.assertEqual(result.returncode, 1, "a staged local-list token went unblocked")
+
+    @unittest.skipUnless(GUARD.is_file(), "guard script not present")
+    def test_an_absent_local_list_runs_on_the_hashes_and_says_so(self) -> None:
+        msg = self._message_file("chore: nothing here\n")
+        result = self._guard(["--message", msg], "/nonexistent/identity-denylist-private.txt")
         self.assertEqual(result.returncode, 0, result.stderr)
-        current = [l for l in self.HASHFILE.read_text().splitlines() if not l.startswith("#")]
-        fresh = [l for l in pathlib.Path(out).read_text().splitlines() if not l.startswith("#")]
-        self.assertEqual(current, fresh,
-                         "tracked hashes drift from the private source: rerun "
-                         "tools/generate-identity-hashes.sh")
+        self.assertEqual(result.stderr.count("local private list absent"), 1)
+        self.assertIn("tracked hashes only", result.stdout)
+
+    @unittest.skipUnless(GUARD.is_file(), "guard script not present")
+    def test_a_below_floor_local_entry_fails_closed(self) -> None:
+        """The matcher runs inside a process substitution whose exit status is lost, so
+        a bad local list must be refused up front or it would read as clean."""
+        msg = self._message_file("chore: nothing here\n")
+        result = self._guard(["--message", msg], self._private("zqxw\n"))
+        self.assertEqual(result.returncode, 2, "a below-floor local entry did not fail closed")
+        self.assertNotIn("zqxw", result.stderr, "the refusal named the entry")
 
 
 class TestTheGuardFailsClosed(unittest.TestCase):
