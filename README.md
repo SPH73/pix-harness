@@ -66,15 +66,19 @@ python3 -m unittest discover -s tests -v   # the guard, proving itself
 
 The repository ships with four fictional tokens in the example source so the guard works, and its tests pass, in a fresh clone. Replace them. The generator refuses an entry below a five-character floor, because a short prefix blocks half the vocabulary, and it hard-fails on a collision with anything already legitimately tracked rather than quietly blocking it.
 
-## What is coming, and when
+## Part 2: a measured cost signal, and what could not be measured
 
-This repository is the third of three parts. The other two are specified and not yet here, which is said plainly rather than left for a reader to discover.
+In [`part2/`](part2/README.md). Two things, both small, both reported with their n.
+
+**A controlled A/B on one rule**: the rule that tells an agent never to read a long file whole, tested on the log-reading part of the task it was written for, with and without the rule, one run each, on a frozen 1.18 MB input. Neither arm read the file whole. The arm without the rule read 3,931 bytes in one read; the arm with it read 4,090 bytes in four, made three more tool calls, and cost more as the app showed it, $0.78 against $0.69. On a task that asks for a narrow slice, the rule changed how the reading was done and not how much was read. Where it would be expected to matter, a task that tempts a whole-file read, was not tested. The input is private, so its size and sha256 are published and a reader cannot re-run it.
+
+**A per-run record across the live scheduled agents**, from 25 September 2026: duration, bytes read into context, files read and tool calls, 28 runs across five agents at the time of writing. Bytes are a proxy and are labelled as one throughout. A scheduled run cannot observe its own token counts, and cost is an account fact rather than a run fact, so the record carries no tokens and no per-run cost. The fleet was never instrumented before that date and there is no historical baseline to recover, so this is a capture window and not a profile.
+
+## What is coming, and when
 
 **Part 1, a skill-trigger eval suite.** A corpus of realistic user phrasings, including the near-misses and the explicit anti-triggers the skill descriptions already anticipate, scored for whether the right skill fires. Precision and recall per skill. This is agent-behaviour testing, not domain testing, and there is very little published work on it.
 
-**Part 2, a measured cost signal for the scheduled agents, and a plain account of what could not be measured.** A controlled A/B on a fixed task, run attended so the token counts are real, measuring the effect of the rule that stopped agents reading long files whole. Alongside it, a per-run record across the scheduled agents that are live, capturing bytes read into context, duration, and files read. Bytes are a proxy and are labelled as one throughout: a scheduled run cannot observe its own token counts, and cost is an account fact rather than a run fact, so no per-run cost figure is published here. The fleet was never instrumented and there is no historical baseline to recover, so the record begins on 25 September 2026 and is reported with its n, which is a capture window and not a profile.
-
-**Part 2 lands by Friday 2 October 2026. Part 1 lands by Friday 16 October 2026.**
+**Part 1 lands by Friday 16 October 2026.**
 
 ## The method
 
@@ -88,7 +92,7 @@ Described here rather than dumped, because the files themselves are working docu
 
 ## Share-safe statement
 
-This repository reports method and publishes one working pattern. It intentionally excludes private IP, client-sensitive context, and the plaintext denylist the guard is built around. The identity guard was run over every file here before publication, in its strictest mode, with the escape hatch disabled. The tokens in the example denylist are fictional. The history starts clean by construction, not by tidying: the first commit is the first commit, and nothing was cloned in from a private repository.
+This repository reports method, publishes one working pattern, and reports one small measurement with its limits. It intentionally excludes private IP, client-sensitive context, the plaintext denylist the guard is built around, and the private inputs and prompts behind Part 2, which carries its own statement. The identity guard was run over every file here before publication, in its strictest mode, with the escape hatch disabled. The tokens in the example denylist are fictional. The history starts clean by construction, not by tidying: the first commit is the first commit, and nothing was cloned in from a private repository.
 
 ## Provenance and licence
 

@@ -70,9 +70,9 @@ file's own stated boundary rather than a reviewer's guess at one.
 | `tools/` | The identity guard and its hash generator. |
 | `.githooks/` | The two hooks that call the guard. Wiring only. |
 | `tests/` | The guard as a test, so a fresh clone is guarded before install. |
+| `part2/` | Part 2: the long-file-rule A/B and the per-run record, each with its n and its limits. |
 
-Parts 1 and 2 of the three-part artefact, the skill-trigger eval suite and the fleet cost
-instrumentation, are not here yet. `README.md` says so with a date, and that date is the
-thing to keep true.
+Part 1 of the three-part artefact, the skill-trigger eval suite, is not here yet.
+`README.md` says so with a date, and that date is the thing to keep true.
 
 **Live status is the repository, never this file.**

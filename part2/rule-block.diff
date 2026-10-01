@@ -1,0 +1,13 @@
+--- ab/prompts/arm-B-without-rule.md	2026-09-28 11:13:20
++++ ab/prompts/arm-A-with-rule.md	2026-09-28 11:13:20
+@@ -14,6 +14,10 @@
+ - **Steps 1 to 5 and 7 onwards of the live task are out** (the `find`, the `git log`, the tracker cross-reference, the overview refresh). They read the live estate, which changes by the hour, and would add noise unrelated to the one thing under test. This edition is the log-reading part of the scan and the log entry it produces.
+ - **Read the flagging protocol? No.** Not this run. It is 600 lines and it is not the subject.
+ 
++## ⚠️ HARD RULE — never read a long file whole (added 2026-08-01; this was the likely cause of the silent misses)
++
++The trackers and `DAILY-LOG.md` are very long. **`cat`-ing any of them whole blows the output cap / exhausts context and has caused this run to die before it wrote its entry** — the silent misses on 07-19, 07-27 and 07-29, which then poisoned the Friday audit. ALWAYS grep for task markers / date headings and truncate (`grep -n`, `cut -c1-200`, `tail -n`). Never `cat` a whole tracker or the whole log. And **write the log entry EARLY (Step 6)** so that if a later, heavier step runs out of room, the critical artefact has already landed.
++
+ ## Steps
+ 
+ 0. **Establish the scan boundary.** Take **LAST_RUN** from the most recent entry's `_Run at:` line in the fixture, exactly as the live task does.
