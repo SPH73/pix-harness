@@ -19,9 +19,14 @@ wired once:
 git config core.hooksPath .githooks
 ```
 
-The plaintext denylist (`tools/identity-denylist-private.txt`) is gitignored and absent from
-clones by design. Start from `tools/identity-denylist-private.example.txt`, then run
-`tools/generate-identity-hashes.sh`.
+**Real names are checked locally and never published, hashed or otherwise.** The tracked
+hashes are unsalted, so a guessed name could be confirmed against them.
+
+- Real entries live only in `tools/identity-denylist-private.txt`: plaintext, gitignored,
+  on the maintaining machine. The guard and both hooks read it directly.
+- `tools/identity-denylist.hashes` is generated from
+  `tools/identity-denylist-private.example.txt` (fictional tokens) and nothing else.
+- **Never generate hashes from real names.**
 
 Run the suite before any commit that touches `tools/`, `.githooks/` or `tests/`:
 

@@ -13,8 +13,14 @@
 #   4. sets core.hooksPath to .githooks in the target;
 #   5. seeds tools/identity-denylist-private.txt from --denylist, or from the example;
 #   6. stages, by name, exactly the files it wrote (the sweep and suite read the tracked tree);
-#   7. generates tools/identity-denylist.hashes, sweeping it against that tree, and stages it;
+#   7. generates tools/identity-denylist.hashes from the FICTIONAL example only (never from
+#      real names), sweeping it against that tree, stages it, and asserts the local
+#      private list is ignored and absent from the index (never `git add -f`);
 #   8. runs tests/test_repo_identity.py in the target, and exits non-zero unless green.
+#
+# REAL NAMES ARE CHECKED LOCALLY AND NEVER PUBLISHED, HASHED OR OTHERWISE (Pix, 2026-10-01).
+# --denylist seeds the target's gitignored local list and nothing else; the same holds
+# under --opt-in.
 #
 # SCOPE IS WRITTEN INTO THE TOOL, not left to memory. The guard is standard where a
 # repository is or could become public, and opt-in where it is permanently private:
@@ -110,8 +116,8 @@ done
 if ! grep -qxF "$PRIVATE_REL" "$TARGET/.gitignore" 2>/dev/null; then
   {
     [ -s "$TARGET/.gitignore" ] && [ -n "$(tail -c1 "$TARGET/.gitignore")" ] && echo
-    echo "# The PLAINTEXT identity denylist. Gitignored by design: the tracked half is the"
-    echo "# generated hash file, and the plaintext never enters history."
+    echo "# The local identity denylist: real names, checked locally, never published,"
+    echo "# hashed or otherwise. The tracked hashes carry the fictional example only."
     echo "$PRIVATE_REL"
   } >> "$TARGET/.gitignore"
   say "added $PRIVATE_REL to .gitignore"
@@ -153,6 +159,14 @@ say "staged: ${STAGE[*]}"
   || fail "hash generation failed (above). Nothing is committed; fix the denylist and rerun with --force."
 
 git -C "$TARGET" add -- tools/identity-denylist.hashes || fail "could not stage the hash file"
+
+# The local list must be ignored and out of the index. Checked, not assumed: a target
+# with a stray negation in its .gitignore would otherwise stage real names.
+git -C "$TARGET" check-ignore -q -- "$PRIVATE_REL" \
+  || fail "$PRIVATE_REL is NOT ignored in the target. Fix .gitignore before going further."
+[ -z "$(git -C "$TARGET" ls-files -- "$PRIVATE_REL")" ] \
+  || fail "$PRIVATE_REL is in the index. Unstage it (git rm --cached) before going further."
+say "checked: the local private list is ignored and absent from the index"
 
 # --- 8. tests -------------------------------------------------------------------------------
 ( cd "$TARGET" && python3 -m unittest discover -s tests -p test_repo_identity.py ) \
