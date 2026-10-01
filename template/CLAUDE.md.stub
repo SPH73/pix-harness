@@ -1,0 +1,47 @@
+# <repository>: Project Agent Context
+
+**`Publicity: `**
+
+Fill the line above with `PERMANENTLY PRIVATE` or `MAY BE PUBLISHED`, and this line is the
+source. **Absent an explicit declaration a repository may not be published**, so it is
+written when the repository is created rather than when someone first wants to push it.
+
+**Default branch:** `<name>`. **Created:** `<date>`.
+
+---
+
+## 1  The identity guard runs on this repository
+
+Installed by `bootstrap-guard.sh` from the template master. Every clone needs the hooks
+wired once:
+
+```sh
+git config core.hooksPath .githooks
+```
+
+The plaintext denylist (`tools/identity-denylist-private.txt`) is gitignored and absent from
+clones by design. Start from `tools/identity-denylist-private.example.txt`, then run
+`tools/generate-identity-hashes.sh`.
+
+Run the suite before any commit that touches `tools/`, `.githooks/` or `tests/`:
+
+```sh
+python3 -m unittest discover -s tests -p test_repo_identity.py
+```
+
+**The escape hatch:** a line that genuinely must carry an identifier carries
+`oem-allow: <reason>` on that line, and it covers that line alone.
+
+## 2  House rules
+
+- **Clean at creation.** Git history cannot be selectively un-published later. Write every
+  repository as though its history will one day be public, whatever it is declared.
+- **A credential never enters history.** If one does, revoke or rotate it first; the history
+  question is separate, and second.
+- **Every git read uses `--no-optional-locks`.** A stale index lock in a mounted
+  repository breaks scheduled jobs silently.
+- **Never `git add -A`.** Add paths explicitly. The gitignore is a second line, not the first.
+- **Go to the primary artefact, not the thing describing it.**
+- **Check the date from the shell before writing one:** `date '+%Y-%m-%d %H:%M %Z'`.
+
+**Live status is the repository, never this file.**

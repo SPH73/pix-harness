@@ -79,7 +79,8 @@ file's own stated boundary rather than a reviewer's guess at one.
 
 | Path | What it is |
 |---|---|
-| `tools/` | The identity guard and its hash generator. |
+| `tools/` | The identity guard, its hash generator, and `bootstrap-guard.sh`, which installs the guard into another repository from here. |
+| `template/` | `CLAUDE.md.stub`, the file the bootstrap writes into a repository that has none. |
 | `.githooks/` | The two hooks that call the guard. Wiring only. |
 | `tests/` | The guard as a test, so a fresh clone is guarded before install. |
 | `part2/` | Part 2: the long-file-rule A/B and the per-run record, each with its n and its limits. |
