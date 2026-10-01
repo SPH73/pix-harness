@@ -18,11 +18,12 @@ What came out of that is the shape in `tools/` today:
 
 - The denylist is **hashed**. The tracked file holds `<length> <sha256>` pairs and nothing else, so the guard blocks a token without naming it.
 - The plaintext source is **private and gitignored**, and nobody hand-maintains the tracked half, so the two cannot drift.
+- **Real names are checked locally and never published, hashed or otherwise.** This came later, from the same kind of failure. The hashes are unsalted, so for a short list of names anyone with a guess can hash it and confirm it against the public file: hashing a name publishes it. So the tracked hash file carries only the fictional example tokens, generated from the example source and nothing else, and a test fails if it ever differs. The real list stays in the gitignored plaintext file, which the guard reads directly on the machine that holds it, through the same matcher.
 - The guard **proves its own source clean using its own matcher**, via `--file --ignore-allow`, which disables the escape hatch so a marked line cannot park an identifier in the guard itself.
 
 And that fix created a hazard of its own, which is the part worth showing. A guard certifying itself with its own matcher is circular: a broken matcher that matched nothing would certify the guard clean and report success it had not earned. So the self-scan is marked in the source as half of an invariant, and its pair is the test that proves the matcher bites on every run. Both docstrings say so, and both say what breaks if the other is deleted. See `TestTrackedCoreCarriesNoIdentity.test_the_guard_source_is_clean_by_its_own_matcher` and `TestHashedDenylist.test_a_hashed_token_is_blocked_unmarked`.
 
-Three failures, three rules, and every one of them still readable next to the code it produced.
+Four failures, four rules, and every one of them still readable next to the code it produced.
 
 ## What is here now
 
@@ -36,19 +37,19 @@ It refuses to let an identifier enter a repository's history: OEM makers and par
 
 | Piece                               | What it is                                                                                                                          |
 | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `tools/check-identity.sh`           | The whole matcher and the only denylist. Five modes: `--staged`, `--message`, `--file`, `--history`, and the default tracked sweep. |
+| `tools/check-identity.sh`           | The whole matcher. Reads the tracked example hashes and, where it exists, the local private list. Five modes: `--staged`, `--message`, `--file`, `--history`, and the default tracked sweep. |
 | `.githooks/pre-commit`              | Scans the staged diff. Wiring only.                                                                                                 |
 | `.githooks/commit-msg`              | Scans the commit message, which is history too and which a content scan cannot see. Wiring only.                                    |
 | `tests/test_repo_identity.py`       | The same sweep as a test, so a fresh clone is guarded before anyone runs the install step.                                          |
-| `tools/generate-identity-hashes.sh` | Regenerates the tracked hash file from the private plaintext source, refusing a denylist that would misfire.                        |
+| `tools/generate-identity-hashes.sh` | Regenerates the tracked hash file from the example source only, refusing the private list and any denylist that would misfire. |
 
-Four callers share one denylist, so they cannot drift apart about what counts. That is the design decision the rest follows from. Two copies of a rule drift, and then the question of which one is the rule has no answer.
+Four callers share one matcher, so they cannot drift apart about what counts. That is the design decision the rest follows from. Two copies of a rule drift, and then the question of which one is the rule has no answer.
 
 Three details that are easy to leave out and expensive to leave out:
 
 - **The commit message is history.** A file-content scan cannot see it, so there is a second hook rather than a cleverer first one.
 - **The escape hatch is a line marker, `oem-allow: <reason>`.** It is how a test can name an identifier in order to assert its absence, and it makes every real identifier a deliberate, reviewable choice instead of an accident. Exemptions are enumerated in the guard's output, never applied silently, because an invisible exemption is how a marker becomes a way to mute the check. In a commit message the marker is a trailer and covers the whole message, since the identifier is normally in the subject while the trailer sits at the bottom.
-- **The guard fails loudly with its denylist absent.** Exit 2, not exit 0. A guard that passes without its list reports success it has not earned, which is worse than no guard because something now depends on it.
+- **The guard fails loudly with its denylist absent.** Exit 2, not exit 0. A guard that passes without its list reports success it has not earned, which is worse than no guard because something now depends on it. The local private list is absent from every clone by design, so its absence is not a failure, but it is never silent either: the guard says in one line that it is checking the tracked hashes only.
 
 ### The test that tests the guard
 
@@ -58,13 +59,12 @@ A hook has to be installed, is not cloned as an active hook, and is bypassed by 
 
 ```sh
 git config core.hooksPath .githooks        # activate both hooks in this clone
-cp tools/identity-denylist-private.example.txt tools/identity-denylist-private.txt
-# edit that file: your tokens, one per line
-bash tools/generate-identity-hashes.sh     # regenerate the tracked hash file
+touch tools/identity-denylist-private.txt  # gitignored: your real tokens, one per line,
+                                           # checked locally, never hashed or committed
 python3 -m unittest discover -s tests -v   # the guard, proving itself
 ```
 
-The repository ships with four fictional tokens in the example source so the guard works, and its tests pass, in a fresh clone. Replace them. The generator refuses an entry below a five-character floor, because a short prefix blocks half the vocabulary, and it hard-fails on a collision with anything already legitimately tracked rather than quietly blocking it.
+The repository ships with four fictional tokens in the example source, and their hashes in the tracked file, so the guard works and its tests pass in a fresh clone. Leave them there: your own tokens go in the private file, not the example, and are never run through the generator. The guard applies the same rules to both lists. The generator refuses an entry below a five-character floor, because a short prefix blocks half the vocabulary, and it hard-fails on a collision with anything already legitimately tracked rather than quietly blocking it.
 
 ## Part 2: a measured cost signal, and what could not be measured
 
@@ -92,7 +92,7 @@ Described here rather than dumped, because the files themselves are working docu
 
 ## Share-safe statement
 
-This repository reports method, publishes one working pattern, and reports one small measurement with its limits. It intentionally excludes private IP, client-sensitive context, the plaintext denylist the guard is built around, and the private inputs and prompts behind Part 2, which carries its own statement. The identity guard was run over every file here before publication, in its strictest mode, with the escape hatch disabled. The tokens in the example denylist are fictional. The history starts clean by construction, not by tidying: the first commit is the first commit, and nothing was cloned in from a private repository.
+This repository reports method, publishes one working pattern, and reports one small measurement with its limits. It intentionally excludes private IP, client-sensitive context, the real denylist the guard is built around (checked locally, never published in plaintext or as hashes), and the private inputs and prompts behind Part 2, which carries its own statement. The identity guard was run over every file here before publication, in its strictest mode, with the escape hatch disabled. The tokens in the example denylist are fictional. The history starts clean by construction, not by tidying: the first commit is the first commit, and nothing was cloned in from a private repository.
 
 ## Provenance and licence
 

@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # check-identity.sh — keep OEM, customer and person identity out of a repository.
 #
-# THE SINGLE DENYLIST, and it lives IN the repo it protects so a clone carries it —
-# HASHED (see the denylist block below), so the guard blocks identifiers without naming
-# them. Four callers share it and therefore cannot drift apart about what counts:
+# THE SINGLE MATCHER, fed by two lists: the tracked HASHED list (fictional example
+# tokens only, so a clone is guarded and its tests pass) and, on the maintaining
+# machine, the LOCAL plaintext list of real names, which is never published, hashed or
+# otherwise (see the local-list block below). Four callers share the matcher and
+# therefore cannot drift apart about what counts:
 #
 #   .githooks/pre-commit          --staged, refusing new entry at the moment it would
 #                                 enter history (install: git config core.hooksPath .githooks)
@@ -63,6 +65,31 @@ REPO="${HARNESS_REPO:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 # python3 is required for the hashing; the repo's own tests already require it.
 HASHES="${IDENTITY_HASHES:-$REPO/tools/identity-denylist.hashes}"
 
+# --- the LOCAL plaintext list (since 2026-10-01) ---------------------------------
+#
+# REAL NAMES ARE CHECKED LOCALLY AND NEVER PUBLISHED, HASHED OR OTHERWISE. The tracked
+# hashes are unsalted '<length> <sha256>', so for a short list of names anyone with a
+# guess can hash it and confirm it against the public file: publishing the hash of a
+# real name publishes the name. So the tracked file carries the fictional example
+# tokens only (the generator reads the example source and nothing else), and the real
+# entries live in tools/identity-denylist-private.txt, gitignored, on the maintaining
+# machine. When that file exists it is merged into the SAME matcher, with the same
+# normalisation (lowercase, strip, prefix) and the same floor, in every mode, so the
+# local hooks check real names without the tracked tree ever carrying them.
+#
+# Absent (a fresh clone) is expected: the guard runs on the tracked hashes and says
+# so in one line on stderr, rather than passing as though the local list had been read.
+PRIVATE="${IDENTITY_PRIVATE:-$REPO/tools/identity-denylist-private.txt}"
+FLOOR=5
+if [ -f "$PRIVATE" ]; then
+  PRIVATE_ARG="$PRIVATE"
+  SCOPE="tracked hashes and the local private list"
+else
+  PRIVATE_ARG=""
+  SCOPE="tracked hashes only"
+  echo "check-identity: local private list absent ($PRIVATE); checking the tracked hashes only." >&2
+fi
+
 if [ ! -f "$HASHES" ]; then
   echo "check-identity: FATAL, the generated hash denylist is MISSING: $HASHES" >&2
   echo "A guard that silently passes without its denylist is worse than no guard," >&2
@@ -110,6 +137,28 @@ with open(sys.argv[1], encoding="utf-8") as fh:
             continue
         length_s, digest = line.split()
         by_length.setdefault(int(length_s), set()).add(digest)
+
+# The LOCAL plaintext list, when present: parsed exactly as the generator parses a
+# source (token before '#', stripped, lowercased; the floor, with its marked
+# exception) and hashed into the same table, so one matcher serves both lists.
+# Errors name a line number, never the entry.
+private, floor = sys.argv[2], int(sys.argv[3])
+if private:
+    with open(private, encoding="utf-8") as fh:
+        for lineno, raw in enumerate(fh, 1):
+            line = raw.strip()
+            if not line or line.startswith("#"):
+                continue
+            token, _, comment = line.partition("#")
+            token = token.strip().lower()
+            if not token:
+                continue
+            if len(token) < floor and "floor-exception:" not in comment:
+                print(f"check-identity: FATAL, local private list line {lineno} is below "
+                      f"the floor of {floor} with no floor-exception marker.", file=sys.stderr)
+                sys.exit(2)
+            by_length.setdefault(len(token), set()).add(
+                hashlib.sha256(token.encode()).hexdigest())
 lengths = sorted(by_length)
 
 honour_allow = "--ignore-allow" not in sys.argv
@@ -134,7 +183,7 @@ for record in sys.stdin:
         if matched:
             break
 PY
-)" "$HASHES" "${1:-}"
+)" "$HASHES" "$PRIVATE_ARG" "$FLOOR" "${1:-}"
 }
 
 report_hashed() {  # stdin: hashed_offenders output; reports and counts them
@@ -251,6 +300,14 @@ scan_history() {
 
 [ -d "$REPO/.git" ] || { echo "check-identity: no repo at $REPO" >&2; exit 2; }
 
+# Validate both lists ONCE, here, where a failure can reach the exit code. Every scan
+# below runs the matcher inside a process substitution, whose exit status is lost, so
+# a malformed or below-floor local list found there would read as "clean".
+if ! hashed_offenders < /dev/null > /dev/null; then
+  echo "check-identity: FATAL, a denylist could not be loaded; refusing rather than passing." >&2
+  exit 2
+fi
+
 case "${1:-tracked}" in
   --staged)  scan_staged ;;
   --message) scan_message "${2:-}" ;;
@@ -273,12 +330,11 @@ if [ "$hits" -gt 0 ]; then
   echo "  If an identifier is genuinely needed (e.g. a test asserting its absence), mark the"
   echo "  line:  oem-allow: <reason>"
   echo "  In a commit message that marker is a trailer and covers the whole message."
-  echo "  If you believe a blocked token is INNOCENT: the denylist matches by hashed prefix,"
-  echo "  and an entry needs lengthening. The editable source is"
-  echo "  tools/identity-denylist-private.txt — gitignored, so it lives on the maintaining"
-  echo "  machine and is absent from clones BY DESIGN (that absence is expected, not broken)."
-  echo "  A fresh clone starts from tools/identity-denylist-private.example.txt."
+  echo "  If you believe a blocked token is INNOCENT: matching is by prefix, and an entry"
+  echo "  needs lengthening. Real names live in tools/identity-denylist-private.txt, gitignored,"
+  echo "  checked locally and never published; it is absent from clones BY DESIGN. The tracked"
+  echo "  hashes carry the example tokens only and are never generated from the local list."
   exit 1
 fi
-echo "  clean: no denylisted identifiers (OEM, customer or person, matched hashed)."
+echo "  clean: no denylisted identifiers (OEM, customer or person; $SCOPE)."
 exit 0

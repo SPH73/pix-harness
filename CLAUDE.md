@@ -30,8 +30,20 @@ clone before committing:
 git config core.hooksPath .githooks
 ```
 
-The plaintext denylist source is gitignored and absent from clones by design. That absence
-is expected, not broken. Start from `tools/identity-denylist-private.example.txt`.
+**Real names are checked locally and never published, hashed or otherwise** (Pix,
+2026-10-01). The tracked hashes are unsalted, so a guessed name can be confirmed against
+them. So:
+
+- Real entries live only in `tools/identity-denylist-private.txt`: plaintext, gitignored,
+  on the maintaining machine. The guard, and both hooks through it, read it directly.
+- `tools/identity-denylist.hashes` carries the four fictional example tokens and nothing
+  else. The generator builds it from `tools/identity-denylist-private.example.txt` only and
+  refuses the private file; a test fails if the tracked hashes ever differ from the example.
+- **Never generate hashes from real names, here or in any repository this guard is
+  installed into.**
+
+The private list is absent from clones by design. The guard then runs on the tracked
+hashes and says so in one line; that is expected, not broken.
 
 Run the guard's own suite before any commit that touches `tools/`, `.githooks/` or
 `tests/`:
