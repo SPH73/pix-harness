@@ -1,6 +1,6 @@
 # pix-harness
 
-An agent harness: the guardrails, verification, supervision and context layers that decide whether an agent can be trusted to run when nobody is watching. Addy Osmani's framing in *AI Engineering* is that an agent is a model plus a harness, and that the harness is the durable half because the model underneath it depreciates. This repository is the harness half, taken out of a private working system and published as it stands. It is not a framework and it is not a demo. Each piece runs in production against real work, and each piece is here because something went wrong once without it.
+An agent harness: the guardrails, verification, supervision and context layers that decide whether an agent can be trusted to run when nobody is watching. Addy Osmani's framing in _AI Engineering_ is that an agent is a model plus a harness, and that the harness is the durable half because the model underneath it depreciates. This repository is the harness half, taken out of a private working system and published as it stands. It is not a framework and it is not a demo. Each piece runs in production against real work, and each piece is here because something went wrong once without it.
 
 ## How it was built, and why that is the point
 
@@ -34,13 +34,13 @@ It refuses to let an identifier enter a repository's history: OEM makers and par
 
 ### The shape
 
-| Piece | What it is |
-|---|---|
-| `tools/check-identity.sh` | The whole matcher and the only denylist. Five modes: `--staged`, `--message`, `--file`, `--history`, and the default tracked sweep. |
-| `.githooks/pre-commit` | Scans the staged diff. Wiring only. |
-| `.githooks/commit-msg` | Scans the commit message, which is history too and which a content scan cannot see. Wiring only. |
-| `tests/test_repo_identity.py` | The same sweep as a test, so a fresh clone is guarded before anyone runs the install step. |
-| `tools/generate-identity-hashes.sh` | Regenerates the tracked hash file from the private plaintext source, refusing a denylist that would misfire. |
+| Piece                               | What it is                                                                                                                          |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `tools/check-identity.sh`           | The whole matcher and the only denylist. Five modes: `--staged`, `--message`, `--file`, `--history`, and the default tracked sweep. |
+| `.githooks/pre-commit`              | Scans the staged diff. Wiring only.                                                                                                 |
+| `.githooks/commit-msg`              | Scans the commit message, which is history too and which a content scan cannot see. Wiring only.                                    |
+| `tests/test_repo_identity.py`       | The same sweep as a test, so a fresh clone is guarded before anyone runs the install step.                                          |
+| `tools/generate-identity-hashes.sh` | Regenerates the tracked hash file from the private plaintext source, refusing a denylist that would misfire.                        |
 
 Four callers share one denylist, so they cannot drift apart about what counts. That is the design decision the rest follows from. Two copies of a rule drift, and then the question of which one is the rule has no answer.
 
@@ -82,7 +82,7 @@ Described here rather than dumped, because the files themselves are working docu
 
 **CRIT** is the brief format: Context, Role, Interview, Task. The step that does the work is **Interview**, and it is assigned to the model rather than to the person writing the brief. The model asks its questions before it starts, which is where most of the value is, because the questions surface the assumptions the brief did not know it was making. **Context** carries a required **Constraints** field, added 2026-09-24: enumerate what is in force, then name which of those actually bear on this task. Enumerating without selecting is how a constraints list becomes decoration.
 
-**The flagging protocol** has two halves that are usually run together and should not be. *Flag freely*: raise anything that looks inconsistent, risky or possibly wrong, because a wrong flag is cheaper than a missed one. *Diagnose tentatively*: raise it as a question rather than a verdict, because a confident wrong cause is more expensive than no cause at all. It also carries a stagnation protocol for the case where an agent is going round the same loop, which is the failure mode that burns a budget with nothing to show.
+**The flagging protocol** has two halves that are usually run together and should not be. _Flag freely_: raise anything that looks inconsistent, risky or possibly wrong, because a wrong flag is cheaper than a missed one. _Diagnose tentatively_: raise it as a question rather than a verdict, because a confident wrong cause is more expensive than no cause at all. It also carries a stagnation protocol for the case where an agent is going round the same loop, which is the failure mode that burns a budget with nothing to show.
 
 **The handoff contract** is the part that is genuinely a contract rather than a convention. A session ends by writing a mandatory `## Continue here` section, and a separate downstream agent lifts that section by name. It is a machine-readable interface between two agents, not a notes folder that a human is trusted to have read.
 

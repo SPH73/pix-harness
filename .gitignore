@@ -6,3 +6,6 @@ tools/identity-denylist-private.txt
 __pycache__/
 *.pyc
 .DS_Store
+
+# Editor settings (IDE colours only). Track only if extension recommendations are added.
+.vscode/
