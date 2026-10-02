@@ -63,8 +63,8 @@
 # sha256 of the prefix. Entries must be single tokens (no spaces).
 #
 # Usage: generate-identity-hashes.sh
-# Exit 0 written, 1 collision refused, 2 no private source / entry below the
-# floor without an exception marker.
+# Exit 0 written, 1 collision refused, 2 no example source / the source is the
+# private list / an entry below the floor without an exception marker.
 
 set -uo pipefail
 

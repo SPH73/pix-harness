@@ -3,9 +3,9 @@
 #
 # Install once per clone:   git config core.hooksPath .githooks
 #
-# All the logic and the single denylist live in tools/check-identity.sh, which the test
-# suite and the scheduled backstop also call, so the three can never disagree about what
-# counts. This file is only the wiring.
+# All the logic and the single matcher live in tools/check-identity.sh, which the
+# commit-msg hook and the test suite also call, so the three can never disagree about
+# what counts. This file is only the wiring.
 #
 # `git commit --no-verify` bypasses this, and hooks only fire once the install step above
 # has been run. Both are why tests/test_repo_identity.py exists: a test needs no install

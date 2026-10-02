@@ -4,7 +4,7 @@
 # THE SINGLE MATCHER, fed by two lists: the tracked HASHED list (fictional example
 # tokens only, so a clone is guarded and its tests pass) and, on the maintaining
 # machine, the LOCAL plaintext list of real names, which is never published, hashed or
-# otherwise (see the local-list block below). Four callers share the matcher and
+# otherwise (see the local-list block below). Three callers share the matcher and
 # therefore cannot drift apart about what counts:
 #
 #   .githooks/pre-commit          --staged, refusing new entry at the moment it would
@@ -14,11 +14,10 @@
 #   tests/test_repo_identity.py   the same sweep as a TEST, so a fresh clone is guarded
 #                                 even before anyone runs the install step; it also runs
 #                                 --history against a named baseline of known offenders
-#   a scheduled adversarial audit  calling the same script from outside the repo
 #
 # WHY commit-time and not push-time: the working copies auto-push on commit, so there is
 # no "clean it before I push" window. `git commit --no-verify` bypasses the hook, which is
-# not a defect to engineer around; it is why the test and the scheduled sweep exist behind it.
+# not a defect to engineer around; it is why the test exists behind it.
 #
 # CLEAN AT CREATION, which is the whole point. Git history travels with a repository and
 # cannot be selectively un-published later, so anything that reaches history has to come out
@@ -259,7 +258,7 @@ scan_message() {
 }
 
 # --file <path> [--ignore-allow]: scan ONE nominated file through the same matcher.
-# Exists so a test (or the scheduled audit, or the generator's collision sweep) can apply
+# Exists so a test (or the generator's collision sweep) can apply
 # the REAL matcher to a file without reimplementing it: a second copy of the matcher is
 # this repo's named enemy. --ignore-allow disables the oem-allow exemption, so marked
 # lines are scanned like any other — it errs STRICT: it can only add findings, never

@@ -5,8 +5,8 @@
 #
 # The companion to .githooks/pre-commit. That one scans the staged DIFF; this one scans the
 # commit MESSAGE, which is history too and which a file-content scan cannot see. Both are
-# only wiring: the logic and the single denylist live in tools/check-identity.sh, which the
-# test suite and the scheduled backstop also call, so none of them can drift apart.
+# only wiring: the logic and the single matcher live in tools/check-identity.sh, which the
+# test suite also calls, so none of them can drift apart.
 #
 # `git commit --no-verify` bypasses this, and hooks only fire once the install step above
 # has been run. For file content, tests/test_repo_identity.py closes both holes. For
