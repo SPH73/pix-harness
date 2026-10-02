@@ -45,6 +45,11 @@ them. So:
 The private list is absent from clones by design. The guard then runs on the tracked
 hashes and says so in one line; that is expected, not broken.
 
+**CI runs the same check on every pull request and push to `main`**
+(`.github/workflows/identity-guard.yml`, the file the bootstrap installs). CI never receives
+the private list, so **a green check covers structure, logic and the fictional example
+hashes, never real names**, and the workflow's log says so.
+
 Run the guard's own suite before any commit that touches `tools/`, `.githooks/` or
 `tests/`:
 
@@ -70,6 +75,9 @@ file's own stated boundary rather than a reviewer's guess at one.
 - **Check the date from the shell before writing one:** `date '+%Y-%m-%d %H:%M %Z'`.
 - **Every git read uses `--no-optional-locks`.** A stale index lock in a mounted
   repository breaks scheduled jobs silently.
+- **Changes land by branch and pull request, with the identity check green** (Pix,
+  2026-10-02, from the commit that added the check onward; before it, commits went direct
+  to `main`).
 - **Never `git add -A` here.** Add paths explicitly. The gitignore is a second line, not
   the first.
 - **House style:** British English, no em-dashes, each point made once. This repository is
@@ -82,6 +90,7 @@ file's own stated boundary rather than a reviewer's guess at one.
 | `tools/` | The identity guard, its hash generator, and `bootstrap-guard.sh`, which installs the guard into another repository from here. |
 | `template/` | `CLAUDE.md.stub`, the file the bootstrap writes into a repository that has none. |
 | `.githooks/` | The two hooks that call the guard. Wiring only. |
+| `.github/workflows/` | `identity-guard.yml`: the suite on every pull request and default-branch push. Installed into targets by the bootstrap. |
 | `tests/` | The guard as a test, so a fresh clone is guarded before install. |
 | `part2/` | Part 2: the long-file-rule A/B and the per-run record, each with its n and its limits. |
 

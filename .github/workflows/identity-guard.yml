@@ -1,0 +1,66 @@
+# identity-guard.yml: the identity guard on every pull request and default-branch push.
+#
+# WHAT A GREEN RUN MEANS, AND WHAT IT DOES NOT. CI never receives the local private list:
+# no secret, no artifact, no IDENTITY_PRIVATE. Real names are checked locally, by the
+# hooks, and never published, hashed or otherwise (Pix, 2026-10-01). So this run checks
+# the guard's structure and logic and the FICTIONAL example hashes. A green check here is
+# not evidence that no real name is present.
+#
+# One home: this file lives in pix-harness, which runs it, and tools/bootstrap-guard.sh
+# copies it into every repository the guard is installed into. Edit it here only.
+#
+# Default branches differ across repositories (main, Main), so the push trigger lists
+# every name in use; the bootstrap warns when a target's default branch is not listed.
+
+name: Identity guard
+
+on:
+  push:
+    branches: ["main", "Main", "master"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: identity-guard-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  identity-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (full history, for the history sweep)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Confirm CI holds no private list (real names are checked locally only)
+        run: |
+          if [ -e tools/identity-denylist-private.txt ] || [ -n "${IDENTITY_PRIVATE:-}" ]; then
+            echo "::error::a private identity list reached CI. It must never leave the maintaining machine."
+            exit 1
+          fi
+          echo "No private list in CI, by design: real names are NOT checked by this run."
+
+      - name: Guard sweep of the tracked tree (fictional example hashes only, NOT real names)
+        run: bash tools/check-identity.sh
+
+      - name: Identity suite (structure, logic and the fictional example; NOT real names)
+        run: python3 -m unittest discover -s tests -p test_repo_identity.py -v
+
+      - name: Say what was not checked
+        if: always()
+        run: |
+          {
+            echo "### Identity guard: scope of this run"
+            echo "Checked: the guard's structure and logic, and the fictional example hashes."
+            echo ""
+            echo "**Not checked: real names.** They are checked locally by the hooks and never leave the maintaining machine. A green run is not evidence that none is present."
+          } >> "$GITHUB_STEP_SUMMARY"

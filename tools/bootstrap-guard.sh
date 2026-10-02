@@ -18,6 +18,10 @@
 #      private list is ignored and absent from the index (never `git add -f`);
 #   8. runs tests/test_repo_identity.py in the target, and exits non-zero unless green.
 #
+# The file set includes .github/workflows/identity-guard.yml, so the target runs the suite
+# on every pull request and default-branch push. CI checks structure, logic and the
+# fictional example hashes, never real names; the workflow says so in its log.
+#
 # REAL NAMES ARE CHECKED LOCALLY AND NEVER PUBLISHED, HASHED OR OTHERWISE (Pix, 2026-10-01).
 # --denylist seeds the target's gitignored local list and nothing else; the same holds
 # under --opt-in.
@@ -50,6 +54,7 @@ FILES=(
   .githooks/pre-commit
   .githooks/commit-msg
   tests/test_repo_identity.py
+  .github/workflows/identity-guard.yml
 )
 PRIVATE_REL="tools/identity-denylist-private.txt"
 
@@ -167,6 +172,14 @@ git -C "$TARGET" check-ignore -q -- "$PRIVATE_REL" \
 [ -z "$(git -C "$TARGET" ls-files -- "$PRIVATE_REL")" ] \
   || fail "$PRIVATE_REL is in the index. Unstage it (git rm --cached) before going further."
 say "checked: the local private list is ignored and absent from the index"
+
+# --- the CI trigger must cover the target's default branch ----------------------------------
+default="$(git -C "$TARGET" symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null)"
+default="${default#origin/}"
+[ -n "$default" ] || default="$(git -C "$TARGET" symbolic-ref --quiet --short HEAD 2>/dev/null)"
+if [ -n "$default" ] && ! grep -qE "^    branches: \[.*\"$default\"" "$TARGET/.github/workflows/identity-guard.yml"; then
+  say "WARNING: default branch '$default' is not in identity-guard.yml's push trigger. Add it there, in pix-harness."
+fi
 
 # --- 8. tests -------------------------------------------------------------------------------
 ( cd "$TARGET" && python3 -m unittest discover -s tests -p test_repo_identity.py ) \

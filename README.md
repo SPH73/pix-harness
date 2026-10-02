@@ -41,6 +41,7 @@ It refuses to let an identifier enter a repository's history: OEM makers and par
 | `.githooks/pre-commit`              | Scans the staged diff. Wiring only.                                                                                                 |
 | `.githooks/commit-msg`              | Scans the commit message, which is history too and which a content scan cannot see. Wiring only.                                    |
 | `tests/test_repo_identity.py`       | The same sweep as a test, so a fresh clone is guarded before anyone runs the install step.                                          |
+| `.github/workflows/identity-guard.yml` | The suite on every pull request and default-branch push. CI never holds the private list, so a green run covers the fictional example hashes and the guard's logic, never real names, and its log says so. |
 | `tools/generate-identity-hashes.sh` | Regenerates the tracked hash file from the example source only, refusing the private list and any denylist that would misfire. |
 
 Four callers share one matcher, so they cannot drift apart about what counts. That is the design decision the rest follows from. Two copies of a rule drift, and then the question of which one is the rule has no answer.
