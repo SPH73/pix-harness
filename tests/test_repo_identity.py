@@ -6,8 +6,8 @@ by `git commit --no-verify`. A test needs no install step, travels with the clon
 cannot be waved through with a flag. The hook is the fast feedback; this is the one that
 actually holds.
 
-It runs the SAME `tools/check-identity.sh` the hooks and the scheduled sweep run, rather
-than carrying its own copy of the denylist. Two copies of a rule drift apart, and then the
+It runs the SAME `tools/check-identity.sh` the hooks run, rather than carrying its own
+copy of the denylist. Two copies of a rule drift apart, and then the
 question of which one is the rule has no answer.
 
 **Commit messages are covered too, and less strongly, which is said rather than implied.**
@@ -64,7 +64,7 @@ class TestTheGuardIsPresent(unittest.TestCase):
                         "test is now silently skipping, and nothing is guarded")
         self.assertTrue(os.access(GUARD, os.X_OK),
                         "tools/check-identity.sh is not executable: the hooks "
-                        "refuse and the Friday sweep fails")
+                        "refuse and nothing is guarded")
 
     def test_both_hooks_exist_and_are_executable(self) -> None:
         """Same sentinel, same reason: the hooks are tracked, and if one vanished
