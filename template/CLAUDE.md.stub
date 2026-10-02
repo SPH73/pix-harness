@@ -34,6 +34,10 @@ Run the suite before any commit that touches `tools/`, `.githooks/` or `tests/`:
 python3 -m unittest discover -s tests -p test_repo_identity.py
 ```
 
+**CI:** `.github/workflows/identity-guard.yml` runs the suite on every pull request and
+default-branch push. CI never receives the private list, so a green check covers structure,
+logic and the fictional example hashes, **never real names**.
+
 **The escape hatch:** a line that genuinely must carry an identifier carries
 `oem-allow: <reason>` on that line, and it covers that line alone.
 
