@@ -3,7 +3,8 @@
 **`Publicity: `**
 
 Fill the line above with `PERMANENTLY PRIVATE` or `MAY BE PUBLISHED`, and this line is the
-source. **Absent an explicit declaration a repository may not be published**, so it is
+source. On any repository that is or could become public this file is gitignored, local only
+(Pix LOCKED 2026-10-04). **Absent an explicit declaration a repository may not be published**, so it is
 written when the repository is created rather than when someone first wants to push it.
 
 **Default branch:** `<name>`. **Created:** `<date>`.
