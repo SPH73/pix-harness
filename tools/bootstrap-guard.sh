@@ -8,11 +8,13 @@
 #
 # What it does, in order, and it stops at the first failure:
 #   1. copies the guard file set into the target (never overwrites without --force);
-#   2. adds the plaintext denylist to the target's .gitignore;
-#   3. writes a CLAUDE.md from template/CLAUDE.md.stub if the target has none;
+#   2. adds the plaintext denylist to the target's .gitignore, and CLAUDE.md too unless the
+#      target declares PERMANENTLY PRIVATE (Pix LOCKED 2026-10-04: every public repo used
+#      as CV evidence carries its Publicity line in a gitignored, local-only CLAUDE.md);
+#   3. writes a CLAUDE.md from template/CLAUDE.md.stub if the target has none (never staged);
 #   4. sets core.hooksPath to .githooks in the target;
 #   5. seeds tools/identity-denylist-private.txt from --denylist, or from the example;
-#   6. stages, by name, exactly the files it wrote (the sweep and suite read the tracked tree);
+#   6. stages, by name, the guard files and .gitignore (the sweep and suite read the tracked tree);
 #   7. generates tools/identity-denylist.hashes from the FICTIONAL example only (never from
 #      real names), sweeping it against that tree, stages it, and asserts the local
 #      private list is ignored and absent from the index (never `git add -f`);
@@ -66,7 +68,7 @@ usage() {
 say()  { echo "bootstrap: $*"; }
 fail() { echo "bootstrap: REFUSED: $*" >&2; exit 1; }
 
-TARGET="" DENYLIST="" OPT_IN=0 FORCE=0 wrote_claude=""
+TARGET="" DENYLIST="" OPT_IN=0 FORCE=0 PRIVATE_TARGET=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --denylist) [ $# -ge 2 ] || usage; DENYLIST="$2"; shift 2 ;;
@@ -97,6 +99,7 @@ fi
 
 if [ -f "$TARGET/CLAUDE.md" ] && grep -q 'Publicity: PERMANENTLY PRIVATE' "$TARGET/CLAUDE.md"; then
   [ "$OPT_IN" -eq 1 ] || fail "$TARGET declares PERMANENTLY PRIVATE; the guard is opt-in there. Pass --opt-in to proceed."
+  PRIVATE_TARGET=1
   say "PERMANENTLY PRIVATE target, proceeding on --opt-in"
 fi
 
@@ -128,13 +131,28 @@ if ! grep -qxF "$PRIVATE_REL" "$TARGET/.gitignore" 2>/dev/null; then
   say "added $PRIVATE_REL to .gitignore"
 fi
 
+# CLAUDE.md is local only on any target that is or could become public (Pix LOCKED
+# 2026-10-04). A PERMANENTLY PRIVATE target keeps whatever arrangement it already has.
+if [ "$PRIVATE_TARGET" -eq 0 ] && ! grep -qxF "CLAUDE.md" "$TARGET/.gitignore" 2>/dev/null; then
+  {
+    [ -s "$TARGET/.gitignore" ] && [ -n "$(tail -c1 "$TARGET/.gitignore")" ] && echo
+    echo "# Local agent context, local only: the Publicity declaration lives here, gitignored"
+    echo "# (Pix LOCKED 2026-10-04). Must never enter this public history."
+    echo "CLAUDE.md"
+  } >> "$TARGET/.gitignore"
+  say "added CLAUDE.md to .gitignore"
+fi
+
 # --- 3. CLAUDE.md ---------------------------------------------------------------------------
 if [ -f "$TARGET/CLAUDE.md" ]; then
   grep -q 'Publicity:' "$TARGET/CLAUDE.md" \
     || say "WARNING: CLAUDE.md carries no Publicity: line. Absent one, the repository may not be published."
 else
-  cp "$MASTER/template/CLAUDE.md.stub" "$TARGET/CLAUDE.md"; wrote_claude=1
-  say "wrote CLAUDE.md from the stub. Its Publicity: line is blank on purpose; fill it."
+  cp "$MASTER/template/CLAUDE.md.stub" "$TARGET/CLAUDE.md"
+  say "wrote CLAUDE.md from the stub (local only, not staged). Its Publicity: line is blank on purpose; fill it."
+fi
+if [ "$PRIVATE_TARGET" -eq 0 ] && [ -n "$(git -C "$TARGET" ls-files -- CLAUDE.md)" ]; then
+  say "WARNING: CLAUDE.md is tracked. It must be local only (Pix LOCKED 2026-10-04): git rm --cached CLAUDE.md"
 fi
 
 # --- 4. hooks -------------------------------------------------------------------------------
@@ -155,7 +173,6 @@ chmod 600 "$TARGET/$PRIVATE_REL"
 
 # --- 6. stage, by name, so the collision sweep and the suite see the guard files ---
 STAGE=("${FILES[@]}" .gitignore)
-[ -n "$wrote_claude" ] && STAGE+=(CLAUDE.md)
 git -C "$TARGET" add -- "${STAGE[@]}" || fail "could not stage the guard files"
 say "staged: ${STAGE[*]}"
 
