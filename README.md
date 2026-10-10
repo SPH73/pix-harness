@@ -1,6 +1,6 @@
 # pix-harness
 
-An agent harness: the guardrails, verification, supervision and context layers that decide whether an agent can be trusted to run when nobody is watching. Addy Osmani's framing in _AI Engineering_ is that an agent is a model plus a harness, and that the harness is the durable half because the model underneath it depreciates. This repository is the harness half, taken out of a private working system and published as it stands. It is not a framework and it is not a demo. Each piece runs in production against real work, and each piece is here because something went wrong once without it.
+An agent harness: the guardrails, verification, supervision and context layers that decide whether an agent can be trusted to run unattended. Addy Osmani's framing in _AI Engineering_ is that an agent is a model plus a harness, and that the harness is the durable half because the model underneath it depreciates. This repository is the harness half, taken out of a private working system and published as it stands. It is not a framework and it is not a demo. Each piece runs in production against real work, and each piece is here because something went wrong once without it.
 
 ## How it was built, and why that is the point
 
