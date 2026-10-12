@@ -1,0 +1,6 @@
+---
+name: "compress-video-for-sharing"
+description: "Shrinks a video, especially a screen recording or demo walkthrough Pix made or wants to send, into a small, emailable, quality-holding MP4. Use whenever a video must be made smaller or sendable: \"compress this video\", \"shrink this recording\", \"make this small enough to email\", \"this file is too big to send\", \"convert the .mov for sending\", \"compress the demo like last time\", \"prepare this recording to send\", \"I need to send this video I made\". Also fires on near-misses: \"can you make this file smaller\", \"480MB is too big\", \"what compression settings did we use last time\". Carries the proven ffmpeg settings, the mandatory duration check that catches silently-truncated encodes, the content-type caveat that prevents a false size expectation, and the house naming rule, so the recipe is never re-derived. Covers compressing media for sharing only; not extracting transcripts or stills from it (video-transcript-and-stills), and not going through an existing transcript (transcript-triage)."
+---
+
+Frontmatter only, verbatim from the author's `compress-video-for-sharing/SKILL.md`, snapshot of 2026-10-09 21:13 BST (after the trigger-phrase pass of 9 October). The body is not published.

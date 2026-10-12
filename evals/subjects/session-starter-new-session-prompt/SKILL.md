@@ -1,0 +1,6 @@
+---
+name: "session-starter-new-session-prompt"
+description: "Turn an existing session-starter into a self-contained prompt Pix pastes into a fresh session, to run it now or later. She always takes a starter to a fresh session through this prompt, so \"run it now\" means \"give me the prompt\". Fire whenever she wants to use a starter: \"I want to use this starter\", \"I want to run the starter now\", \"write me a prompt to paste into a fresh session\", \"prompt for a new session for this starter\", \"give me something to paste later for that starter\", \"hand this starter to a fresh session\", \"new-session prompt for that starter\", \"so I have it ready when I'm free\". The prompt carries the starter's absolute path, points at any companion or prior starter and deliverable it continues, and asks the receiving session to check the starter for contradictions, anomalies or improvements FIRST. Not for: a fresh session opened with a starter (that session runs it); writing the starter itself (session-starters); a briefing for her (block-briefing)."
+---
+
+Frontmatter only, verbatim from the author's `session-starter-new-session-prompt/SKILL.md`, snapshot of 2026-10-09 21:13 BST (after the trigger-phrase pass of 9 October). The body is not published.
