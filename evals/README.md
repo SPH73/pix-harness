@@ -17,7 +17,7 @@ The suite tests whether a user's phrasing fires the right skill out of the skill
 
 ## Headline results
 
-Latest runs: `2026-10-12-model-run16.md`, `-run17.md`, `-run18.md` (trimmed field) and `2026-10-12-model-run16-fullfield.md` (full field). Same cases and labels across all four; the three trimmed runs share one descriptions hash.
+Latest runs: `2026-10-13-model-run19.md`, `-run20.md`, `-run21.md` (trimmed field) and `2026-10-13-model-run19-fullfield.md` (full field). Same cases and labels across all four; the three trimmed runs share one descriptions hash.
 
 | Set | n | Trimmed, three runs (range) | Full, one run |
 |---|---|---|---|
