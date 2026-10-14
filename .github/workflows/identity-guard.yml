@@ -55,6 +55,9 @@ jobs:
       - name: Identity suite (structure, logic and the fictional example; NOT real names)
         run: python3 -m unittest discover -s tests -p test_repo_identity.py -v
 
+      - name: Eval suite self-tests (fictional field, no key, no model call)
+        run: python3 -m unittest discover -s tests -p test_evals.py -v
+
       - name: Say what was not checked
         if: always()
         run: |

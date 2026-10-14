@@ -1,0 +1,157 @@
+# Results: model arm, 2026-10-11
+
+- Field: 236 candidate skills, FULL additive snapshot (the maintaining machine's private full snapshot) (236 skills, today's descriptions, includes the 190 skills removed from the live set on 11 Oct); snapshot 19:09 BST; descriptions sha256 c356fddf3b9b428d; private snapshot repository HEAD 88ee906 (snapshot uncommitted until the 23:20 nightly); this repository, a pre-publication commit; server-side fallback on, answering model not recorded.
+- Cases: 134 (1 canary).
+- Scorer: model claude-opus-5-5, effort low.
+- This is a worked example of the method, not a coverage figure or a benchmark of a model.
+
+| Skill | n | precision | recall | tp | fp | fn | note |
+|---|---|---|---|---|---|---|---|
+| `channel-method-first` | 8 | 1.00 | 1.00 | 8 | 0 | 0 |  |
+| `compress-video-for-sharing` | 6 | 1.00 | 0.83 | 5 | 0 | 1 |  |
+| `handoff` | 16 | 0.94 | 0.94 | 15 | 1 | 1 |  |
+| `session-starter-new-session-prompt` | 7 | 0.86 | 0.86 | 6 | 1 | 1 |  |
+| `transcript-triage` | 8 | 1.00 | 0.75 | 6 | 0 | 2 |  |
+| `verify-before-quoting` | 7 | 1.00 | 0.86 | 6 | 0 | 1 | asymmetric: recall is the metric; false positives are specified behaviour |
+
+| id | class | expected | predicted | result | score |
+|---|---|---|---|---|---|
+| canary-01 | C | transcript-triage | compress-video-for-sharing | MISS | 1.00 |
+| compress-video-01 | E | compress-video-for-sharing | compress-video-for-sharing | ok | 1.00 |
+| compress-video-02 | E | compress-video-for-sharing | compress-video-for-sharing | ok | 1.00 |
+| handoff-01 | E | handoff | handoff | ok | 1.00 |
+| handoff-02 | E | handoff | handoff | ok | 1.00 |
+| handoff-03 | E | handoff | handoff | ok | 1.00 |
+| handoff-04 | E | handoff | handoff | ok | 1.00 |
+| handoff-05 | E | handoff | handoff | ok | 1.00 |
+| handoff-06 | E | handoff | handoff | ok | 1.00 |
+| handoff-07 | E | handoff | handoff | ok | 1.00 |
+| handoff-08 | E | handoff | handoff | ok | 1.00 |
+| handoff-09 | E | handoff | other | MISS | 1.00 |
+| transcript-triage-01 | T | transcript-triage | transcript-triage | ok | 1.00 |
+| transcript-triage-02 | T | transcript-triage | NONE | MISS | 1.00 |
+| transcript-triage-03 | T | transcript-triage | transcript-triage | ok | 1.00 |
+| new-session-prompt-01 | T | session-starter-new-session-prompt | session-starter-new-session-prompt | ok | 1.00 |
+| new-session-prompt-02 | T | session-starter-new-session-prompt | NONE | MISS | 1.00 |
+| channel-method-01 | T | channel-method-first | channel-method-first | ok | 1.00 |
+| channel-method-02 | T | channel-method-first | channel-method-first | ok | 1.00 |
+| new-session-prompt-03 | D | NONE | session-starter-new-session-prompt | MISS | 1.00 |
+| transcript-triage-04 | D | transcript-triage | transcript-triage | ok | 1.00 |
+| transcript-triage-05 | D | other:other | other | ok | 1.00 |
+| compress-video-03 | D | compress-video-for-sharing | compress-video-for-sharing | ok | 1.00 |
+| compress-video-04 | D | other:other | other | ok | 1.00 |
+| handoff-10 | D | handoff | handoff | ok | 1.00 |
+| handoff-11 | D | handoff | handoff | ok | 1.00 |
+| handoff-12 | D | other:other | other | ok | 1.00 |
+| handoff-13 | D | other:other | other | MISS | 1.00 |
+| handoff-14 | D | handoff | handoff | ok | 1.00 |
+| new-session-prompt-04 | D | session-starter-new-session-prompt | session-starter-new-session-prompt | ok | 1.00 |
+| handoff-15 | T | handoff | handoff | ok | 1.00 |
+| value-capture-01 | D | other:other | other | ok | 1.00 |
+| new-session-prompt-05 | D | session-starter-new-session-prompt | session-starter-new-session-prompt | ok | 1.00 |
+| compress-video-05 | T | compress-video-for-sharing | compress-video-for-sharing | ok | 1.00 |
+| compress-video-06 | E | compress-video-for-sharing | NONE | MISS | 1.00 |
+| compress-video-07 | D | NONE | NONE | ok | 1.00 |
+| compress-video-08 | D | compress-video-for-sharing | compress-video-for-sharing | ok | 1.00 |
+| transcript-triage-06 | T | transcript-triage | transcript-triage | ok | 1.00 |
+| transcript-triage-07 | T | transcript-triage | NONE | MISS | 1.00 |
+| transcript-triage-08 | D | transcript-triage | transcript-triage | ok | 1.00 |
+| transcript-triage-09 | D | other:other | other | ok | 1.00 |
+| transcript-triage-10 | D | other:other | other | ok | 1.00 |
+| handoff-16 | T | handoff | handoff | ok | 1.00 |
+| handoff-17 | D | NONE | handoff | MISS | 1.00 |
+| handoff-18 | T | handoff | handoff | ok | 1.00 |
+| handoff-19 | D | handoff | handoff | ok | 1.00 |
+| handoff-20 | D | NONE | other | MISS | 1.00 |
+| new-session-prompt-06 | T | session-starter-new-session-prompt | session-starter-new-session-prompt | ok | 1.00 |
+| new-session-prompt-07 | D | session-starter-new-session-prompt | session-starter-new-session-prompt | ok | 1.00 |
+| new-session-prompt-08 | D | session-starter-new-session-prompt | session-starter-new-session-prompt | ok | 1.00 |
+| channel-method-03 | T | channel-method-first | channel-method-first | ok | 1.00 |
+| channel-method-04 | T | channel-method-first | channel-method-first | ok | 1.00 |
+| channel-method-05 | T | channel-method-first | channel-method-first | ok | 1.00 |
+| channel-method-06 | T | channel-method-first | channel-method-first | ok | 1.00 |
+| channel-method-07 | T | channel-method-first | channel-method-first | ok | 1.00 |
+| channel-method-08 | T | channel-method-first | channel-method-first | ok | 1.00 |
+| verify-before-quoting-01 | T | verify-before-quoting | verify-before-quoting | ok | 1.00 |
+| verify-before-quoting-02 | T | verify-before-quoting | verify-before-quoting | ok | 1.00 |
+| verify-before-quoting-03 | T | verify-before-quoting | verify-before-quoting | ok | 1.00 |
+| verify-before-quoting-04 | T | verify-before-quoting | verify-before-quoting | ok | 1.00 |
+| verify-before-quoting-05 | T | verify-before-quoting | verify-before-quoting | ok | 1.00 |
+| verify-before-quoting-06 | D | verify-before-quoting | verify-before-quoting | ok | 1.00 |
+| verify-before-quoting-07 | D | verify-before-quoting | NONE | MISS | 1.00 |
+| handoff-21 | D | NONE | NONE | ok | 1.00 |
+| channel-method-09 | D | other:other | other | ok | 1.00 |
+| channel-method-10 | D | NONE | NONE | ok | 1.00 |
+| channel-method-11 | D | other:other | other | ok | 1.00 |
+| verify-before-quoting-08 | D | other:other | other | ok | 1.00 |
+| verify-before-quoting-09 | D | NONE | NONE | ok | 1.00 |
+| block-briefing-01 | T | other:other | other | ok | 1.00 |
+| block-briefing-02 | T | other:other | other | ok | 1.00 |
+| block-briefing-03 | T | other:other | other | ok | 1.00 |
+| block-briefing-04 | T | other:other | other | ok | 1.00 |
+| block-briefing-05 | T | other:other | other | ok | 1.00 |
+| block-briefing-06 | D | other:other | other | ok | 1.00 |
+| block-briefing-07 | D | other:other | other | ok | 1.00 |
+| block-briefing-08 | D | other:other | other | ok | 1.00 |
+| value-capture-02 | D | NONE | NONE | ok | 1.00 |
+| whole-first-01 | T | other:other | other | ok | 1.00 |
+| whole-first-02 | T | other:other | other | ok | 1.00 |
+| whole-first-03 | T | other:other | other | ok | 1.00 |
+| whole-first-04 | T | other:other | other | ok | 1.00 |
+| whole-first-05 | T | other:other | other | ok | 1.00 |
+| whole-first-06 | D | other:other | NONE | MISS | 1.00 |
+| whole-first-07 | D | other:other | other | ok | 1.00 |
+| whole-first-08 | D | other:other | other | ok | 1.00 |
+| consistency-01 | T | other:other | other | ok | 1.00 |
+| consistency-02 | T | other:other | other | ok | 1.00 |
+| consistency-03 | T | other:other | other | ok | 1.00 |
+| consistency-04 | T | other:other | other | ok | 1.00 |
+| consistency-05 | D | other:other | other | ok | 1.00 |
+| consistency-06 | D | NONE | NONE | ok | 1.00 |
+| consistency-07 | D | other:other | other | ok | 1.00 |
+| consistency-08 | D | NONE | NONE | ok | 1.00 |
+| consistency-09 | D | other:other | other | ok | 1.00 |
+| consistency-10 | D | other:other | other | ok | 1.00 |
+| guide-pix-01 | T | other:other | other | ok | 1.00 |
+| guide-pix-02 | T | other:other | other | ok | 1.00 |
+| guide-pix-03 | T | other:other | NONE | MISS | 1.00 |
+| guide-pix-04 | T | other:other | other | ok | 1.00 |
+| guide-pix-05 | T | other:other | other | ok | 1.00 |
+| guide-pix-06 | D | NONE | NONE | ok | 1.00 |
+| facts-01 | T | other:other | other | ok | 1.00 |
+| facts-02 | T | other:other | other | ok | 1.00 |
+| facts-03 | T | other:other | other | ok | 1.00 |
+| facts-04 | T | other:other | other | ok | 1.00 |
+| facts-05 | T | other:other | other | ok | 1.00 |
+| facts-06 | T | other:other | other | ok | 1.00 |
+| sidebar-01 | D | NONE | other | MISS | 1.00 |
+| sidebar-02 | T | other:other | other | ok | 1.00 |
+| sidebar-03 | T | other:other | other | ok | 1.00 |
+| sidebar-04 | T | other:other | other | ok | 1.00 |
+| sidebar-05 | T | other:other | other | ok | 1.00 |
+| oem-profile-01 | T | other:other | other | ok | 1.00 |
+| oem-profile-02 | T | other:other | NONE | MISS | 1.00 |
+| oem-profile-03 | T | other:other | other | ok | 1.00 |
+| oem-profile-04 | D | other:other | other | ok | 1.00 |
+| oem-profile-05 | D | other:other | other | ok | 1.00 |
+| acceptance-01 | D | other:other | other | ok | 1.00 |
+| transcript-triage-11 | D | transcript-triage | transcript-triage | ok | 1.00 |
+| sidebar-06 | T | other:other | other | ok | 1.00 |
+| sidebar-07 | D | NONE | NONE | ok | 1.00 |
+| sidebar-08 | D | NONE | NONE | ok | 1.00 |
+| sidebar-09 | D | NONE | NONE | ok | 1.00 |
+| sidebar-10 | D | NONE | NONE | ok | 1.00 |
+| sidebar-11 | D | NONE | other | MISS | 1.00 |
+| stakeholder-01 | T | other:other | other | ok | 1.00 |
+| stakeholder-02 | T | other:other | other | ok | 1.00 |
+| stakeholder-03 | T | other:other | other | ok | 1.00 |
+| stakeholder-04 | T | other:other | other | ok | 1.00 |
+| stakeholder-05 | T | other:other | other | ok | 1.00 |
+| stakeholder-06 | D | NONE | NONE | ok | 1.00 |
+| stakeholder-07 | D | other:other | other | ok | 1.00 |
+| stakeholder-08 | D | NONE | other | MISS | 1.00 |
+
+Canary: bit.
+
+
+Footnote (R3, Pix 11 Oct): this is the full additive snapshot, so design-handoff and debug ARE in the field and handoff-12, handoff-13 (other:design-handoff) and whole-first-06 (other:debug) expect the named skill, not NONE; the table shows them as other:other. Companion to 2026-10-11-model-run4.md, -run5.md, -run6.md on the trimmed field.
