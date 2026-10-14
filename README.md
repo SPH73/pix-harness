@@ -67,6 +67,12 @@ python3 -m unittest discover -s tests -v   # the guard, proving itself
 
 The repository ships with four fictional tokens in the example source, and their hashes in the tracked file, so the guard works and its tests pass in a fresh clone. Leave them there: your own tokens go in the private file, not the example, and are never run through the generator. The guard applies the same rules to both lists. The generator refuses an entry below a five-character floor, because a short prefix blocks half the vocabulary, and it hard-fails on a collision with anything already legitimately tracked rather than quietly blocking it.
 
+## Part 1: a skill-trigger eval suite
+
+In [`evals/`](evals/README.md). A corpus of realistic user phrasings, including the near-misses and the explicit anti-triggers the skill descriptions already anticipate, scored for whether the right skill fires out of the skills present at runtime. Precision and recall per skill. This is agent-behaviour testing, not domain testing.
+
+**Held-out result, 14 October 2026:** 37 phrasings written by the author without the six descriptions in view; on the 46-skill field live at runtime, 30 to 32 were scored correct across three runs, and 28 on the full 236-skill field in one run; recall fell for two of the six skills: on the 46-skill field, `handoff` 0.60 and `verify-before-quoting` 0.50; on the 236-skill field, 0.40 and 0.33. Details, limits and every results file: [`evals/README.md`](evals/README.md).
+
 ## Part 2: a measured cost signal, and what could not be measured
 
 In [`part2/`](part2/README.md). Two things, both small, both reported with their n.
@@ -74,12 +80,6 @@ In [`part2/`](part2/README.md). Two things, both small, both reported with their
 **A controlled A/B on one rule**: the rule that tells an agent never to read a long file whole, tested on the log-reading part of the task it was written for, with and without the rule, one run each, on a frozen 1.18 MB input. Neither arm read the file whole. The arm without the rule read 3,931 bytes in one read; the arm with it read 4,090 bytes in four, made three more tool calls, and cost more as the app showed it, $0.78 against $0.69. On a task that asks for a narrow slice, the rule changed how the reading was done and not how much was read. Where it would be expected to matter, a task that tempts a whole-file read, was not tested. The input is private, so its size and sha256 are published and a reader cannot re-run it.
 
 **A per-run record across the live scheduled agents**, from 25 September 2026: duration, bytes read into context, files read and tool calls, 28 runs across five agents at the time of writing. Bytes are a proxy and are labelled as one throughout. A scheduled run cannot observe its own token counts, and cost is an account fact rather than a run fact, so the record carries no tokens and no per-run cost. The fleet was never instrumented before that date and there is no historical baseline to recover, so this is a capture window and not a profile.
-
-## What is coming, and when
-
-**Part 1, a skill-trigger eval suite.** A corpus of realistic user phrasings, including the near-misses and the explicit anti-triggers the skill descriptions already anticipate, scored for whether the right skill fires. Precision and recall per skill. This is agent-behaviour testing, not domain testing, and there is very little published work on it.
-
-**Part 1 lands by Friday 16 October 2026.**
 
 ## The method
 
@@ -93,7 +93,7 @@ Described here rather than dumped, because the files themselves are working docu
 
 ## Share-safe statement
 
-This repository reports method, publishes one working pattern, and reports one small measurement with its limits. It intentionally excludes private IP, client-sensitive context, the real denylist the guard is built around (checked locally, never published in plaintext or as hashes), and the private inputs and prompts behind Part 2, which carries its own statement. The identity guard was run over every file here before publication, in its strictest mode, with the escape hatch disabled. The tokens in the example denylist are fictional. The history starts clean by construction, not by tidying: the first commit is the first commit, and nothing was cloned in from a private repository.
+This repository reports method, publishes one working pattern, and reports two small measurements with their limits. It intentionally excludes private IP, client-sensitive context, the real denylist the guard is built around (checked locally, never published in plaintext or as hashes), the descriptions of the skills outside the six, which make up the fields every Part 1 figure is scored on, and the private inputs and prompts behind Part 2, which carries its own statement. The identity guard was run over every file here before publication, in its strictest mode, with the escape hatch disabled. The tokens in the example denylist are fictional. The history starts clean by construction, not by tidying: the first commit is the first commit, and nothing was cloned in from a private repository.
 
 ## Provenance and licence
 
@@ -101,4 +101,4 @@ Written by Sue Holder. The identity guard was extracted from a private working r
 
 Licensed under the Apache Licence, Version 2.0. See `LICENSE`.
 
-The publicity declaration for this repository lives in its own `CLAUDE.md`, per the house rule that a repository states its intent in one line where a session opened directly on it will see it.
+The publicity declaration for this repository is kept in a local, untracked `CLAUDE.md`, per the house rule that a repository states its intent in one line where a session opened directly on it will see it.

@@ -158,4 +158,6 @@ Canary: bit.
 
 
 
-Footnote (R3, Pix 11 Oct): handoff-12 (judged other:design-handoff) expects NONE on this field because design-handoff was removed from the live set on 11 Oct and is not in it; the table shows it as other:other. A prediction of handoff or any other skill is a MISS.
+Footnote (R3, Pix 11 Oct; corrected 14 Oct): design-handoff is in this full snapshot, so handoff-12 (judged other:design-handoff) expects that skill here and the table shows it as other:other.
+
+Correction, 2026-10-14 (Pix): until this date the footnote's first sentences read "handoff-12 (judged other:design-handoff) expects NONE on this field because design-handoff was removed from the live set on 11 Oct and is not in it; the table shows it as other:other. A prediction of handoff or any other skill is a MISS." That reading holds for the trimmed field, not this full field. No figure in this file changes.

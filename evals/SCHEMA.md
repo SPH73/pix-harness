@@ -30,7 +30,7 @@ Classes A, B and C of the scope document are not trigger cases and are not here.
 
 - Not a benchmark of a model. It scores six skill descriptions, against a stated field of candidate skills, on a stated date, with a stated scorer.
 - Not stable across model versions. Every results file is dated.
-- Not a coverage figure. About 25 cases across six skills is a worked example of the method.
+- Not a coverage figure. 137 cases in `cases.tsv` and 38 in `held-out.tsv`, each with one canary, across six skills, are a worked example of the method.
 
 ## Known limits
 
