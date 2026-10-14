@@ -6,11 +6,15 @@ They use a FICTIONAL field built in a temp dir, so they need neither the private
 snapshot nor a key, and they prove the runner rather than any result.
 """
 
+import contextlib
+import io
 import pathlib
 import subprocess
 import sys
 import tempfile
+import types
 import unittest
+from unittest import mock
 
 REPO = pathlib.Path(__file__).resolve().parents[1]
 EVALS = REPO / "evals"
@@ -139,6 +143,82 @@ class TestMetricsAndCanary(unittest.TestCase):
             cases.write_text("\t".join(run.COLUMNS) + "\n"
                              "canary-01\tbake me a loaf\tbake-bread\tC\tbuilt to fail\tagent\n", encoding="utf-8")
             self.assertEqual(run.main(["--field", str(root), "--subjects", str(root), "--cases", str(cases)]), 3)
+
+
+class StubClient:
+    """Stands in for the anthropic client: no key, no network. Each call returns the next
+    (answering model, usage.iterations) pair as a response that picks bake-bread."""
+
+    def __init__(self, answers):
+        self.answers = list(answers)
+        self.beta = types.SimpleNamespace(messages=types.SimpleNamespace(create=self.create))
+
+    def create(self, **kwargs):
+        model, iterations = self.answers.pop(0)
+        return types.SimpleNamespace(
+            model=model, stop_reason="end_turn",
+            usage=types.SimpleNamespace(iterations=iterations),
+            content=[types.SimpleNamespace(type="text", text='{"skill": "bake-bread"}')])
+
+
+def fallback(model):
+    return [types.SimpleNamespace(type="message", model="claude-opus-5-5"),
+            types.SimpleNamespace(type="fallback_message", model=model)]
+
+
+class TestAnsweringModel(unittest.TestCase):
+    REQUESTED = "claude-opus-5-5"
+
+    def header(self, arm, answers=()):
+        """Run main on a fictional field and three cases; return the header lines."""
+        with tempfile.TemporaryDirectory() as d:
+            root = pathlib.Path(d)
+            fake_field(root)
+            cases = root / "cases.tsv"
+            cases.write_text("\t".join(run.COLUMNS) + "\n"
+                             "t-01\tbake me a loaf\tbake-bread\tT\ttest\ttest\n"
+                             "t-02\tmake bread\tbake-bread\tT\ttest\ttest\n"
+                             "canary-01\tbake me a loaf\tice-cake\tC\tbuilt to fail\tagent\n", encoding="utf-8")
+            client, real = StubClient(answers), run.Model
+            out = io.StringIO()
+            with mock.patch.object(run, "Model", lambda field, model: real(field, model, client)), \
+                    contextlib.redirect_stdout(out):
+                code = run.main(["--arm", arm, "--field", str(root), "--subjects", str(root), "--cases", str(cases)])
+        self.assertEqual(code, 0)
+        return [l for l in out.getvalue().splitlines() if l.startswith("- ")]
+
+    def test_one_model_for_every_call(self) -> None:
+        lines = self.header("model", [(self.REQUESTED, [])] * 3)
+        self.assertIn("- Answering model: claude-opus-5-5 (3 of 3 calls). "
+                      "Found by: response.model (no fallback entry) 3.", lines)
+
+    def test_a_mixed_run_counts_each_model_and_names_the_fallback_cases(self) -> None:
+        lines = self.header("model", [(self.REQUESTED, None),
+                                      (self.REQUESTED, fallback("claude-sonnet-5-5")),
+                                      (self.REQUESTED, [])])
+        self.assertIn("- Answering model: claude-opus-5-5 (2 of 3 calls); claude-sonnet-5-5 (1 of 3 calls: t-02). "
+                      "Found by: fallback entry 1, response.model (no fallback entry) 1, "
+                      "response.model (usage.iterations absent) 1.", lines)
+
+    def test_the_line_sits_after_the_scorer_line(self) -> None:
+        lines = self.header("model", [(self.REQUESTED, [])] * 3)
+        self.assertTrue(lines[2].startswith("- Scorer: model "))
+        self.assertTrue(lines[3].startswith("- Answering model: "))
+
+    def test_a_refusal_still_records_the_model(self) -> None:
+        response = types.SimpleNamespace(model=self.REQUESTED, stop_reason="refusal",
+                                         usage=types.SimpleNamespace(iterations=fallback("claude-sonnet-5-5")))
+        client = types.SimpleNamespace(beta=types.SimpleNamespace(
+            messages=types.SimpleNamespace(create=lambda **kw: response)))
+        m = run.Model({"bake-bread": "x"}, self.REQUESTED, client)
+        self.assertEqual(m.pick("anything"), (run.NONE, 0.0))
+        self.assertEqual(m.last_answer, ("claude-sonnet-5-5", run.FOUND_FALLBACK))
+
+    def test_the_deterministic_arm_header_is_unchanged(self) -> None:
+        lines = self.header("deterministic")
+        self.assertFalse(any(l.startswith("- Answering model") for l in lines))
+        self.assertEqual([l.split(":")[0] for l in lines],
+                         ["- Field", "- Cases", "- Scorer", "- This is a worked example of the method, not a coverage figure or a benchmark of a model."])
 
 
 if __name__ == "__main__":

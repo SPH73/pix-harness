@@ -225,19 +225,41 @@ def api_key() -> str:
     return key
 
 
+FOUND_FALLBACK = "fallback entry"
+FOUND_NO_FALLBACK = "response.model (no fallback entry)"
+FOUND_NO_ITERATIONS = "response.model (usage.iterations absent)"
+
+
+def answering_model(response) -> tuple[str, str]:
+    """The model that answered, and how it was found. The package names the signal: a
+    `fallback_message` entry in `usage.iterations` carries the model that served a
+    fallback (BetaFallbackMessageIterationUsage). Without one, `response.model`."""
+    iterations = getattr(getattr(response, "usage", None), "iterations", None)
+    if iterations is None:
+        return response.model, FOUND_NO_ITERATIONS
+    served = [i for i in iterations if getattr(i, "type", None) == "fallback_message"]
+    if served:
+        return served[-1].model, FOUND_FALLBACK
+    return response.model, FOUND_NO_FALLBACK
+
+
 class Model:
     """Claude chooses one skill from the field, or NONE. The field goes in a cached
-    system block, since it is identical for every case and is most of the tokens."""
+    system block, since it is identical for every case and is most of the tokens.
+    After each pick, `last_answer` holds (answering model, how it was found)."""
 
-    def __init__(self, field: dict[str, str], model: str):
-        try:
-            import anthropic  # the only non-stdlib dependency, and only for this arm
-        except ImportError:
-            sys.exit("run.py: the model arm needs the anthropic package: pip install anthropic")
-        # The real API, explicitly: an ANTHROPIC_BASE_URL left in the environment by a
-        # coding tool would otherwise send the eval key somewhere else (seen 2026-10-09).
-        self.client = anthropic.Anthropic(api_key=api_key(), base_url="https://api.anthropic.com")
+    def __init__(self, field: dict[str, str], model: str, client=None):
+        if client is None:
+            try:
+                import anthropic  # the only non-stdlib dependency, and only for this arm
+            except ImportError:
+                sys.exit("run.py: the model arm needs the anthropic package: pip install anthropic")
+            # The real API, explicitly: an ANTHROPIC_BASE_URL left in the environment by a
+            # coding tool would otherwise send the eval key somewhere else (seen 2026-10-09).
+            client = anthropic.Anthropic(api_key=api_key(), base_url="https://api.anthropic.com")
+        self.client = client
         self.model = model
+        self.last_answer: tuple[str, str] | None = None
         self.names = sorted(field)
         listing = "\n".join(f"- {n}: {d}" for n, d in sorted(field.items()))
         self.system = [{
@@ -268,6 +290,7 @@ class Model:
             output_config={"effort": "low", "format": {"type": "json_schema", "schema": self.schema}},
             messages=[{"role": "user", "content": f"User's message:\n\n{phrasing}"}],
         )
+        self.last_answer = answering_model(response)
         if response.stop_reason == "refusal":
             return NONE, 0.0
         if response.stop_reason != "end_turn":
@@ -314,6 +337,25 @@ def metrics(cases: list[Case], predictions: dict[str, str], subjects: set[str]) 
     return out
 
 
+def answering_line(answers: dict[str, tuple[str, str]], requested: str) -> str:
+    """One header line: each distinct answering model with its count, the case ids any
+    model other than the requested one answered, and how the models were found."""
+    total = len(answers)
+    models: dict[str, list[str]] = {}
+    found: dict[str, int] = {}
+    for case_id, (model, how) in answers.items():
+        models.setdefault(model, []).append(case_id)
+        found[how] = found.get(how, 0) + 1
+    parts = []
+    for model, ids in sorted(models.items(), key=lambda kv: (-len(kv[1]), kv[0])):
+        part = f"{model} ({len(ids)} of {total} calls"
+        if model != requested:
+            part += ": " + ", ".join(ids)
+        parts.append(part + ")")
+    how = ", ".join(f"{h} {n}" for h, n in sorted(found.items()))
+    return f"- Answering model: {'; '.join(parts)}. Found by: {how}."
+
+
 def fmt(x) -> str:
     return "n/a" if x is None else f"{x:.2f}"
 
@@ -343,10 +385,12 @@ def main(argv: list[str] | None = None) -> int:
         sys.exit(f"run.py: the field at {args.field} lacks subject skills: {sorted(missing)}")
 
     scorer = Lexical(field) if args.arm == "deterministic" else Model(field, args.model)
-    predictions, scores = {}, {}
+    predictions, scores, answers = {}, {}, {}
     for c in cases:
         p, s = scorer.pick(c.phrasing, args.threshold) if args.arm == "deterministic" else scorer.pick(c.phrasing)
         predictions[c.id], scores[c.id] = p, s
+        if args.arm == "model":
+            answers[c.id] = scorer.last_answer
 
     canaries = [c for c in cases if c.is_canary]
     unbitten = [c.id for c in canaries if correct(c, predictions[c.id], field)]
@@ -369,6 +413,7 @@ def main(argv: list[str] | None = None) -> int:
         f"- Field: {len(field)} candidate skills" + (f", {args.field_label}" if args.field_label else "") + ".",
         f"- Cases: {len(cases)} ({len(canaries)} canary).",
         f"- Scorer: {'lexical, IDF-weighted overlap, threshold ' + str(args.threshold) if args.arm == 'deterministic' else 'model ' + args.model + ', effort low'}.",
+    ] + ([answering_line(answers, args.model)] if args.arm == "model" else []) + [
         "- This is a worked example of the method, not a coverage figure or a benchmark of a model.",
         "",
         "| Skill | n | precision | recall | tp | fp | fn | note |",
