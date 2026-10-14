@@ -221,5 +221,33 @@ class TestAnsweringModel(unittest.TestCase):
                          ["- Field", "- Cases", "- Scorer", "- This is a worked example of the method, not a coverage figure or a benchmark of a model."])
 
 
+class TestValidate(unittest.TestCase):
+    def test_validate_checks_and_stops_before_scoring(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            root = pathlib.Path(d)
+            fake_field(root)
+            cases = root / "cases.tsv"
+            cases.write_text("\t".join(run.COLUMNS) + "\n"
+                             "t-01\tbake me a loaf\tbake-bread\tT\ttest\ttest\n"
+                             "canary-01\tbake me a loaf\tice-cake\tC\tbuilt to fail\tagent\n", encoding="utf-8")
+            argv = ["--field", str(root), "--subjects", str(root), "--cases", str(cases), "--validate"]
+            out = io.StringIO()
+            # No scorer of either arm is built: the model arm would need a key and the network.
+            with mock.patch.object(run, "Lexical", side_effect=AssertionError("scored")), \
+                    mock.patch.object(run, "Model", side_effect=AssertionError("scored")), \
+                    contextlib.redirect_stdout(out):
+                self.assertEqual(run.main(argv), 0)
+                self.assertEqual(run.main(argv + ["--arm", "model"]), 0)
+            self.assertEqual(out.getvalue().splitlines()[0],
+                             "cases.tsv: 2 cases (1 canary), valid against a field of 3.")
+            self.assertNotIn("|", out.getvalue())  # no score table
+            # A malformed corpus still stops with its faults named.
+            cases.write_text("\t".join(run.COLUMNS) + "\n"
+                             "t-01\tbake me a loaf\tbake-bread\tT\t\ttest\n", encoding="utf-8")
+            with self.assertRaises(SystemExit) as raised:
+                run.main(argv)
+            self.assertIn("no provenance", str(raised.exception.code))
+
+
 if __name__ == "__main__":
     unittest.main()

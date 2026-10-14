@@ -24,7 +24,8 @@ The CANARY. Any case whose id starts with `canary-` is built to be scored wrong.
 runner asserts it IS scored wrong and exits 3 if it is not. A suite that cannot fail
 certifies nothing; this is the test that it can.
 
-Exit codes: 0 ran, 2 misuse or a malformed corpus, 3 the canary did not bite.
+Exit codes: 0 ran, 1 a malformed corpus or a missing prerequisite, 2 misuse of the
+command line, 3 the canary did not bite.
 """
 
 from __future__ import annotations
@@ -375,6 +376,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--threshold", type=float, default=0.5, help="deterministic arm: below this, NONE")
     ap.add_argument("--model", default="claude-opus-5-5")
     ap.add_argument("--write", action="store_true", help="write evals/results/<date>-<arm>.md")
+    ap.add_argument("--validate", action="store_true",
+                    help="check the cases and the field, then stop: nothing is scored, no key, no network")
     args = ap.parse_args(argv)
 
     field = load_field(args.field)
@@ -383,6 +386,10 @@ def main(argv: list[str] | None = None) -> int:
     missing = subjects - set(field)
     if missing:
         sys.exit(f"run.py: the field at {args.field} lacks subject skills: {sorted(missing)}")
+    if args.validate:
+        canaries = sum(1 for c in cases if c.is_canary)
+        print(f"{args.cases.name}: {len(cases)} cases ({canaries} canary), valid against a field of {len(field)}.")
+        return 0
 
     scorer = Lexical(field) if args.arm == "deterministic" else Model(field, args.model)
     predictions, scores, answers = {}, {}, {}
