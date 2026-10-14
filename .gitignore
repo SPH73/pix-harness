@@ -9,3 +9,4 @@ __pycache__/
 
 # Editor settings (IDE colours only). Track only if extension recommendations are added.
 .vscode/
+CLAUDE.md
