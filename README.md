@@ -69,7 +69,7 @@ The repository ships with four fictional tokens in the example source, and their
 
 ## Part 1: a skill-trigger eval suite
 
-In [`evals/`](evals/README.md). A corpus of realistic user phrasings, including the near-misses and the explicit anti-triggers the skill descriptions already anticipate, scored for whether the right skill fires out of the skills present at runtime. Precision and recall per skill. This is agent-behaviour testing, not domain testing.
+In [`evals/`](evals/README.md). A corpus of realistic user phrasings, including the near-misses and the explicit anti-triggers the skill descriptions already anticipate, scored for whether the right skill fires out of the skills present at runtime. Precision and recall per skill. This is agent-behaviour testing, not domain testing. Six skills are under test; their descriptions are in [`evals/subjects/`](evals/subjects/).
 
 **Held-out result, 14 October 2026:** 37 phrasings written by the author without the six descriptions in view; on the 46-skill field live at runtime, 30 to 32 were scored correct across three runs, and 28 on the full 236-skill field in one run; recall fell for two of the six skills: on the 46-skill field, `handoff` 0.60 and `verify-before-quoting` 0.50; on the 236-skill field, 0.40 and 0.33. Details, limits and every results file: [`evals/README.md`](evals/README.md).
 

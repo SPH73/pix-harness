@@ -20,14 +20,14 @@ The suite tests whether a user's phrasing fires the right skill out of the skill
 
 ### Held-out set, 14 October
 
-Files: `2026-10-14-model-held-out-run1.md`, `-run2.md`, `-run3.md` (trimmed field), `2026-10-14-model-held-out-fullfield.md` (full field), and the deterministic arm on both fields (`2026-10-14-deterministic-held-out.md`, `-fullfield.md`). Same 37 judged cases and frozen descriptions across all six. Each model-arm header records the answering model: claude-opus-5-5 in 38 of 38 calls in every run.
+Files: `2026-10-14-model-held-out-run1.md`, `-run2.md`, `-run3.md` (trimmed field), `2026-10-14-model-held-out-fullfield.md` (full field), and the deterministic arm on both fields (`2026-10-14-deterministic-held-out.md`, `-fullfield.md`). Same 37 judged cases and frozen descriptions across all six files. Each model-arm header records the answering model: claude-opus-5-5 in 38 of 38 calls in every run.
 
 | Set | n | Trimmed, three runs | Full, one run |
 |---|---|---|---|
 | Held-out cases correct | 37 | 30, 31, 32 | 28 |
 | Misses | 37 | 7, 6, 5 | 9 |
 
-The deterministic arm missed 28 of 37 on each field: a floor for comparison, not a competitor.
+The deterministic arm missed 28 of 37 on each field: a floor for comparison.
 
 Per subject skill:
 
@@ -82,7 +82,7 @@ The original-31 figure is not given as a single number across dates: two of the 
 - **14 October:** the held-out set written and judged; the runner records the answering model in each model-arm header from here on; the held-out set scored on the frozen descriptions (`2026-10-14-*-held-out*.md` headers).
 - Each file's header names its field, case count and descriptions hash.
 
-Trimmed-field misses on the development cases went from 17, 14, 12 (run4 to run6) to 8, 9, 7 (run19 to run21); between those rows the descriptions changed five times, three cases were added and three were relabelled, so the rows do not share cases or field.
+Trimmed-field misses on all judged cases went from 17, 14, 12 (run4 to run6) to 8, 9, 7 (run19 to run21); between those rows the descriptions changed five times, three cases were added and three were relabelled, so the rows do not share cases or field.
 
 Misses per run:
 

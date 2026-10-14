@@ -1,6 +1,6 @@
 ---
 name: "channel-method-first"
-description: "Read a new channel and write the method FOR it before writing anything there. Fire whenever Pix considers reaching an audience somewhere new or adapting content or a method to a different platform: \"should we try LinkedIn / Threads / Reddit / a newsletter\", \"how do we do this on that platform\", \"what method should we use for this platform\", \"do we have a method for this platform\", \"we need to create a method for this platform using the LinkedIn method\", \"can we use part of the LinkedIn method\", \"can we adapt the LinkedIn method for this platform\", \"where else could this reach people\", \"make a version of this for...\". Also fires when a channel's method stops fitting or a draft blows a platform limit. Produces a verified channel profile and a shape derived for it. Never ports a shape from one channel to another. Not for: tightening a post on a channel already worked (facts-not-justifications); replying on a known channel; checking documents agree (consistency-side-by-side)."
+description: "Read a new channel and write its method before writing there; never port a shape across. Fire on: \"should we try LinkedIn / Threads / Reddit\", \"what method should we use for this platform\", \"can we adapt the LinkedIn method\". Not for: tightening a post (facts-not-justifications)."
 ---
 
-Frontmatter only, verbatim from the author's `channel-method-first/SKILL.md`, snapshot of 2026-10-09 21:13 BST (after the trigger-phrase pass of 9 October). The body is not published.
+Frontmatter only, verbatim from the author's `channel-method-first/SKILL.md`, frozen 13 October 2026 14:59 BST, snapshot `2026-10-14-trimmed-held-out`: the text the held-out figures were scored on. The body is not published.

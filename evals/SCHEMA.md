@@ -24,8 +24,6 @@ One case is one line of `cases.tsv`, tab-separated, six columns, header row firs
 
 Held-out rows (held-out.tsv) are classed by what they test; their provenance is the file, not a description.
 
-Classes A, B and C of the scope document are not trigger cases and are not here.
-
 ## What the corpus is not
 
 - Not a benchmark of a model. It scores six skill descriptions, against a stated field of candidate skills, on a stated date, with a stated scorer.
