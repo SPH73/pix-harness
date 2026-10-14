@@ -22,6 +22,8 @@ One case is one line of `cases.tsv`, tab-separated, six columns, header row firs
 | `N` | An explicit anti-trigger: the description says this should not fire, so `expected` is `NONE` or `other:<name>`. | The skill's own frontmatter. |
 | `C` | The canary. Built to fail. If it passes, the runner is broken and exits non-zero. | This file. |
 
+Held-out rows (held-out.tsv) are classed by what they test; their provenance is the file, not a description.
+
 Classes A, B and C of the scope document are not trigger cases and are not here.
 
 ## What the corpus is not
